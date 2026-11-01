@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import { setHapticsEnabled } from '@/lib/haptics';
+import { resetAllStores } from './persisted';
 import { DEFAULT_ACCENT } from '@/theme/colors';
 import type { TimeFormat, WeekStart } from '@/lib/time';
 
@@ -16,6 +18,13 @@ export type Settings = {
   weekStart: WeekStart;
   fontSize: FontSize;
   dataSource: DataSourcePreference;
+  /** `LEGAL.version` the user last agreed to; 0 = never (shows onboarding). */
+  acceptedTermsVersion: number;
+  haptics: boolean;
+  /** Gentle haptic + on-screen "time check" during focus, every N minutes (0 = off). */
+  timeCheckMinutes: 0 | 5 | 10 | 15;
+  /** Notify when a focus session ends while the app is in the background. */
+  focusReminders: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -26,6 +35,10 @@ export const DEFAULT_SETTINGS: Settings = {
   weekStart: 0,
   fontSize: 'medium',
   dataSource: 'device',
+  acceptedTermsVersion: 0,
+  haptics: true,
+  timeCheckMinutes: 10,
+  focusReminders: true,
 };
 
 const STORAGE_KEY = 'settings.v1';
@@ -34,6 +47,8 @@ type SettingsContextValue = {
   settings: Settings;
   ready: boolean;
   update: (patch: Partial<Settings>) => void;
+  /** Wipes everything the app stored on this device and returns to first launch. */
+  eraseAllData: () => Promise<void>;
 };
 
 const SettingsContext = createContext<SettingsContextValue | null>(null);
@@ -59,7 +74,17 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const value = useMemo(() => ({ settings, ready, update }), [settings, ready, update]);
+  const eraseAllData = useCallback(async () => {
+    await AsyncStorage.clear();
+    resetAllStores();
+    setSettings(DEFAULT_SETTINGS);
+  }, []);
+
+  useEffect(() => {
+    setHapticsEnabled(settings.haptics);
+  }, [settings.haptics]);
+
+  const value = useMemo(() => ({ settings, ready, update, eraseAllData }), [settings, ready, update, eraseAllData]);
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 }
 

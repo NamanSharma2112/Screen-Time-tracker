@@ -10,7 +10,7 @@ type Action = {
   onPress: () => void;
 };
 
-type Props = {
+export type ScreenHeaderProps = {
   title: string;
   left?: Action;
   right?: Action;
@@ -18,7 +18,7 @@ type Props = {
   subtitle?: ReactNode;
 };
 
-export function ScreenHeader({ title, left, right, subtitle }: Props) {
+export function ScreenHeader({ title, left, right, subtitle }: ScreenHeaderProps) {
   return (
     <View style={styles.row}>
       <View style={styles.side}>

@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import type { ReactNode } from 'react';
 import { Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -50,8 +50,8 @@ export function PressableScale({
         onPressOut?.(e);
       }}
       onPress={(e) => {
-        if (haptic === 'selection') Haptics.selectionAsync().catch(() => {});
-        if (haptic === 'light') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        if (haptic === 'selection') haptics.selection();
+        if (haptic === 'light') haptics.light();
         onPress?.(e);
       }}
     >

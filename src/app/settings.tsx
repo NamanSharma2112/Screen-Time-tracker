@@ -1,25 +1,29 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
+import Constants from 'expo-constants';
 import { useEffect, useState, type ComponentProps } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BOTTOM_BAR_SPACE, BottomBar, PrimaryButton } from '@/components/Buttons';
+import { PrimaryButton } from '@/components/Buttons';
+import { ConfirmSheet } from '@/components/ConfirmSheet';
 import { ListRow } from '@/components/ListRow';
 import { OptionSheet, type Option } from '@/components/OptionSheet';
 import { PressableScale } from '@/components/PressableScale';
-import { ScreenHeader } from '@/components/ScreenHeader';
+import { Screen } from '@/components/Screen';
 import { Card, Divider, SectionLabel, Sheet } from '@/components/Surfaces';
+import { Switch } from '@/components/Switch';
 import { Txt } from '@/components/Txt';
+import { LEGAL } from '@/legal/config';
+import { haptics } from '@/lib/haptics';
+import { requestNotifications } from '@/lib/notifications';
 import { SettingsPreview, useSettings, type Settings, type ThemePreference } from '@/state/settings';
 import { useUsage } from '@/state/usage';
 import { ACCENTS } from '@/theme/colors';
 import { useEntering, springs } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
-type PickerKey = 'dailyGoalMinutes' | 'timeFormat' | 'weekStart' | 'fontSize' | 'dataSource';
+type PickerKey = 'dailyGoalMinutes' | 'timeFormat' | 'weekStart' | 'fontSize' | 'dataSource' | 'timeCheckMinutes';
 
 const PICKERS: { [K in PickerKey]: { title: string; options: Option<Settings[K]>[] } } = {
   dailyGoalMinutes: {
@@ -48,6 +52,15 @@ const PICKERS: { [K in PickerKey]: { title: string; options: Option<Settings[K]>
       { value: 'large', label: 'Large' },
     ],
   },
+  timeCheckMinutes: {
+    title: 'Time checks',
+    options: [
+      { value: 0, label: 'Off' },
+      { value: 5, label: 'Every 5 minutes' },
+      { value: 10, label: 'Every 10 minutes', detail: 'Recommended — helps with time blindness' },
+      { value: 15, label: 'Every 15 minutes' },
+    ],
+  },
   dataSource: {
     title: 'Data source',
     options: [
@@ -72,7 +85,7 @@ export default function SettingsScreen() {
         patch={patch}
         onSave={() => {
           update(draft);
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+          haptics.success();
           router.back();
         }}
       />
@@ -90,11 +103,11 @@ function SettingsContent({
   onSave: () => void;
 }) {
   const enter = useEntering();
-  const insets = useSafeAreaInsets();
-  const { colors } = useTheme();
+  const { eraseAllData } = useSettings();
   const { deviceSupported, permission, requestPermission } = useUsage();
   const [picker, setPicker] = useState<PickerKey | null>(null);
   const [lastPicker, setLastPicker] = useState<PickerKey>('timeFormat');
+  const [confirmErase, setConfirmErase] = useState(false);
   const open = (k: PickerKey) => {
     setLastPicker(k);
     setPicker(k);
@@ -107,13 +120,15 @@ function SettingsContent({
   ];
 
   const pk = PICKERS[lastPicker] as { title: string; options: Option<string | number>[] };
+  const version = Constants.expoConfig?.version ?? '1.0.0';
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top, flexGrow: 1 }} showsVerticalScrollIndicator={false}>
-        <ScreenHeader title="Preferences" left={{ icon: 'arrow-back', label: 'Back', onPress: () => router.back() }} />
-
-        <Sheet style={{ paddingBottom: BOTTOM_BAR_SPACE, marginTop: 8 }}>
+    <>
+      <Screen
+        header={{ title: 'Preferences', left: { icon: 'arrow-back', label: 'Back', onPress: () => router.back() } }}
+        bottom={<PrimaryButton label="Save" onPress={onSave} />}
+      >
+        <Sheet style={{ marginTop: 8 }}>
           <Animated.View entering={enter(0)}>
             <SectionLabel>Theme</SectionLabel>
           </Animated.View>
@@ -140,7 +155,7 @@ function SettingsContent({
           </Animated.View>
 
           <Animated.View entering={enter(4)}>
-            <SectionLabel>Goals</SectionLabel>
+            <SectionLabel>Goals & focus</SectionLabel>
           </Animated.View>
           <Animated.View entering={enter(5)}>
             <Card>
@@ -150,11 +165,33 @@ function SettingsContent({
                 value={labelOf('dailyGoalMinutes', draft.dailyGoalMinutes)}
                 onPress={() => open('dailyGoalMinutes')}
               />
+              <Divider inset={48} />
+              <ListRow
+                icon="time-outline"
+                label="Time checks"
+                value={draft.timeCheckMinutes ? `${draft.timeCheckMinutes} min` : 'Off'}
+                onPress={() => open('timeCheckMinutes')}
+              />
+              <Divider inset={48} />
+              <ListRow
+                icon="notifications-outline"
+                label="Session-end reminder"
+                right={
+                  <Switch
+                    label="Session-end reminder"
+                    value={draft.focusReminders}
+                    onChange={async (v) => {
+                      patch({ focusReminders: v });
+                      if (v) await requestNotifications();
+                    }}
+                  />
+                }
+              />
             </Card>
           </Animated.View>
 
           <Animated.View entering={enter(6)}>
-            <SectionLabel>Data display</SectionLabel>
+            <SectionLabel>Display & feel</SectionLabel>
           </Animated.View>
           <Animated.View entering={enter(7)}>
             <Card>
@@ -178,10 +215,16 @@ function SettingsContent({
                 value={labelOf('fontSize', draft.fontSize)}
                 onPress={() => open('fontSize')}
               />
+              <Divider inset={48} />
+              <ListRow
+                icon="pulse-outline"
+                label="Haptics"
+                right={<Switch label="Haptics" value={draft.haptics} onChange={(v) => patch({ haptics: v })} />}
+              />
             </Card>
           </Animated.View>
 
-          <SectionLabel>Data</SectionLabel>
+          <SectionLabel>Your data</SectionLabel>
           <Card>
             <ListRow
               icon="phone-portrait-outline"
@@ -200,16 +243,42 @@ function SettingsContent({
                 />
               </>
             ) : null}
+            <Divider inset={48} />
+            <ListRow
+              icon="trash-outline"
+              label="Delete all data"
+              labelColor="#FF3B30"
+              onPress={() => setConfirmErase(true)}
+            />
           </Card>
           <Txt variant="footnote" tone="tertiary" style={styles.footnote}>
-            Your usage data never leaves this device.
+            Everything stays on this device. Nothing is uploaded, shared or sold.
+          </Txt>
+
+          <SectionLabel>About</SectionLabel>
+          <Card>
+            <ListRow icon="shield-checkmark-outline" label="Privacy Policy" onPress={() => openDoc('privacy')} />
+            <Divider inset={48} />
+            <ListRow icon="document-text-outline" label="Terms of Use" onPress={() => openDoc('terms')} />
+            <Divider inset={48} />
+            <ListRow icon="medkit-outline" label="Health Disclaimer" onPress={() => openDoc('health')} />
+            <Divider inset={48} />
+            <ListRow icon="code-slash-outline" label="Open-source licences" onPress={() => router.push('/licenses')} />
+            <Divider inset={48} />
+            <ListRow
+              icon="mail-outline"
+              label="Contact support"
+              onPress={() =>
+                Linking.openURL(`mailto:${LEGAL.contactEmail}?subject=${encodeURIComponent(LEGAL.appName)}`)
+              }
+            />
+          </Card>
+          <Txt variant="footnote" tone="tertiary" align="center" style={styles.version}>
+            {LEGAL.appName} {version}
+            {'\n'}Not a medical device.
           </Txt>
         </Sheet>
-      </ScrollView>
-
-      <BottomBar>
-        <PrimaryButton label="Save" onPress={onSave} />
-      </BottomBar>
+      </Screen>
 
       <OptionSheet
         visible={picker != null}
@@ -219,9 +288,23 @@ function SettingsContent({
         onSelect={(v) => patch({ [lastPicker]: v } as Partial<Settings>)}
         onClose={() => setPicker(null)}
       />
-    </View>
+      <ConfirmSheet
+        visible={confirmErase}
+        title="Delete all data?"
+        message="This erases your preferences, focus history and brain-dump notes from this device and restarts setup. Your Android usage history isn’t affected. This can’t be undone."
+        confirmLabel="Delete all data"
+        destructive
+        onClose={() => setConfirmErase(false)}
+        onConfirm={async () => {
+          setConfirmErase(false);
+          await eraseAllData();
+        }}
+      />
+    </>
   );
 }
+
+const openDoc = (doc: 'privacy' | 'terms' | 'health') => router.push({ pathname: '/legal/[doc]', params: { doc } });
 
 function ThemeCard({
   label,
@@ -301,4 +384,5 @@ const styles = StyleSheet.create({
   swatch: { width: 30, height: 30, borderRadius: 15 },
   swatchRing: { position: 'absolute', width: 38, height: 38, borderRadius: 19, borderWidth: 2 },
   footnote: { paddingHorizontal: 4 },
+  version: { marginTop: 16, marginBottom: 8 },
 });

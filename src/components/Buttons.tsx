@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -79,23 +79,15 @@ export function HoldButton({
         done.current = false;
         pressed.set(withSpring(1, springs.press));
         progress.set(withTiming(1, { duration, easing: Easing.linear }));
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+        haptics.light();
         // Ticks speed up as the fill approaches the end.
         [0.3, 0.5, 0.65, 0.78, 0.88, 0.95].forEach((f) =>
-          timers.current.push(
-            setTimeout(
-              () =>
-                Haptics.impactAsync(
-                  f > 0.8 ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light,
-                ).catch(() => {}),
-              duration * f,
-            ),
-          ),
+          timers.current.push(setTimeout(() => (f > 0.8 ? haptics.medium() : haptics.light()), duration * f)),
         );
         timers.current.push(
           setTimeout(() => {
             done.current = true;
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+            haptics.success();
             pressed.set(withSpring(0, springs.release));
             onComplete();
             timers.current.push(setTimeout(() => progress.set(withTiming(0, timings.change)), 450));

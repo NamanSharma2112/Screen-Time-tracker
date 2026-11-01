@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import * as Haptics from 'expo-haptics';
+import { haptics } from '@/lib/haptics';
 import type { ComponentProps, ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -18,10 +18,12 @@ type Props = {
   right?: ReactNode;
   onPress?: () => void;
   muted?: boolean;
+  /** Colours the label, e.g. red for destructive actions. Hides the chevron. */
+  labelColor?: string;
 };
 
 /** A grouped-table cell. Tappable rows highlight like UITableView cells (instant in, eased out). */
-export function ListRow({ label, value, icon, marker, left, right, onPress, muted }: Props) {
+export function ListRow({ label, value, icon, marker, left, right, onPress, muted, labelColor }: Props) {
   const { colors, accent } = useTheme();
   const highlight = useSharedValue(0);
   const highlightStyle = useAnimatedStyle(() => ({
@@ -31,9 +33,16 @@ export function ListRow({ label, value, icon, marker, left, right, onPress, mute
   const content = (
     <View style={styles.row}>
       {marker ? <View style={[styles.marker, { backgroundColor: marker }]} /> : null}
-      {icon ? <Ionicons name={icon} size={19} color={accent} style={styles.icon} /> : null}
+      {icon ? <Ionicons name={icon} size={19} color={labelColor ?? accent} style={styles.icon} /> : null}
       {left}
-      <Txt variant="callout" tone={muted ? 'tertiary' : 'secondary'} style={styles.label} numberOfLines={1}>
+      <Txt
+        variant="callout"
+        tone={muted ? 'tertiary' : 'secondary'}
+        color={labelColor}
+        weight={labelColor ? '600' : undefined}
+        style={styles.label}
+        numberOfLines={1}
+      >
         {label}
       </Txt>
       {value != null ? (
@@ -42,7 +51,7 @@ export function ListRow({ label, value, icon, marker, left, right, onPress, mute
         </Txt>
       ) : null}
       {right}
-      {onPress ? (
+      {onPress && !labelColor && !right ? (
         <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} style={styles.chevron} />
       ) : null}
     </View>
@@ -56,7 +65,7 @@ export function ListRow({ label, value, icon, marker, left, right, onPress, mute
       onPressIn={() => highlight.set(withTiming(1, { duration: 60 }))}
       onPressOut={() => highlight.set(withTiming(0, { duration: 350 }))}
       onPress={() => {
-        Haptics.selectionAsync().catch(() => {});
+        haptics.selection();
         onPress();
       }}
     >

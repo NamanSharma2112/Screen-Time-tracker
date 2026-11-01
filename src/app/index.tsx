@@ -1,73 +1,84 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppUsageRow } from '@/components/AppUsageRow';
 import { StackedLine } from '@/components/Bars';
-import { BOTTOM_BAR_SPACE, BottomBar, PrimaryButton } from '@/components/Buttons';
+import { BrainDumpSheet } from '@/components/BrainDumpSheet';
+import { PrimaryButton } from '@/components/Buttons';
 import { DataNotice } from '@/components/DataNotice';
 import { DottedDial } from '@/components/DottedDial';
+import { ListRow } from '@/components/ListRow';
 import { PressableScale } from '@/components/PressableScale';
-import { ScreenHeader } from '@/components/ScreenHeader';
+import { RollingText } from '@/components/RollingText';
+import { Screen } from '@/components/Screen';
 import { StatColumns } from '@/components/StatColumns';
 import { Badge, Card, Divider, SectionLabel, Sheet } from '@/components/Surfaces';
+import { SwipeDays } from '@/components/SwipeDays';
 import { Txt } from '@/components/Txt';
 import { WeekStrip } from '@/components/WeekStrip';
 import { CATEGORIES } from '@/data/categories';
-import { dayTitle, formatClock, parseKey, formatDuration, MINUTE, splitDuration, todayKey, weekKeys } from '@/lib/time';
+import { haptics } from '@/lib/haptics';
+import { dayTitle, formatClock, formatDuration, MINUTE, parseKey, splitDuration, todayKey, weekKeys } from '@/lib/time';
+import { focusHistory, focusStats } from '@/state/focus';
+import { notesStore } from '@/state/notes';
 import { useSettings } from '@/state/settings';
 import { useDays, useUsage } from '@/state/usage';
-import { useEntering, useTween } from '@/theme/motion';
+import { useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 export default function TodayScreen() {
   const enter = useEntering();
-  const insets = useSafeAreaInsets();
   const { settings } = useSettings();
-  const { colors } = useTheme();
+  const { colors, accent } = useTheme();
   const { apps, source, refresh } = useUsage();
   const [refreshing, setRefreshing] = useState(false);
+  const [dumpOpen, setDumpOpen] = useState(false);
+  const focus = focusStats(focusHistory.use());
+  const parked = notesStore.use().filter((n) => !n.done).length;
 
   const today = todayKey();
   const week = useMemo(() => weekKeys(parseKey(today), settings.weekStart), [settings.weekStart, today]);
   const [selected, setSelected] = useState(today);
   const days = useDays(week);
-  const day = days[week.indexOf(selected)];
+  const index = week.indexOf(selected);
+  const day = days[index];
 
   const goalMs = settings.dailyGoalMinutes * MINUTE;
   const total = day?.totalMs ?? 0;
-  const shown = splitDuration(useTween(total, 700));
+  const shown = splitDuration(total);
   const isToday = selected === today;
 
   const top = day?.apps.slice(0, 5) ?? [];
   const topMs = top[0]?.ms ?? 1;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <ScrollView
-        contentContainerStyle={{ paddingTop: insets.top, flexGrow: 1 }}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
+    <>
+      <Screen
+        header={{
+          title: isToday ? 'Screen time' : dayTitle(selected),
+          subtitle: source === 'demo' ? <Badge label="Sample data" /> : undefined,
+          left: { icon: 'ellipsis-horizontal', label: 'Preferences', onPress: () => router.push('/settings') },
+          right: { icon: 'bar-chart-outline', label: 'Weekly analytics', onPress: () => router.push('/analytics') },
+        }}
+        bottom={<PrimaryButton label="Start a focus session" onPress={() => router.push('/focus')} />}
+        refreshControl={(top) => (
           <RefreshControl
             refreshing={refreshing}
             tintColor={colors.textSecondary}
+            colors={[accent]}
+            progressViewOffset={top}
             onRefresh={async () => {
+              haptics.light();
               setRefreshing(true);
               await refresh();
               setRefreshing(false);
             }}
           />
-        }
+        )}
       >
-        <ScreenHeader
-          title={isToday ? 'Screen time' : dayTitle(selected)}
-          subtitle={source === 'demo' ? <Badge label="Sample data" /> : undefined}
-          left={{ icon: 'ellipsis-horizontal', label: 'Preferences', onPress: () => router.push('/settings') }}
-          right={{ icon: 'bar-chart-outline', label: 'Weekly analytics', onPress: () => router.push('/analytics') }}
-        />
-
         <Animated.View entering={enter(1)}>
           <WeekStrip
             keys={week}
@@ -79,27 +90,29 @@ export default function TodayScreen() {
         </Animated.View>
 
         <Animated.View entering={enter(0)} style={styles.dialWrap}>
-          <PressableScale
-            haptic="light"
-            scaleTo={0.97}
-            onPress={() => router.push('/analytics')}
-            accessibilityLabel={`${formatDuration(total)} of screen time. Open analytics.`}
+          <SwipeDays
+            canPrev={index > 0}
+            canNext={index < week.length - 1 && week[index + 1] <= today}
+            onChange={(dir) => setSelected(week[index + dir])}
           >
-            <DottedDial size={268} progress={total / goalMs} live={isToday}>
-              <Txt variant="hero" tabular>
-                {shown.h}h
-              </Txt>
-              <Txt variant="hero" tone="secondary" tabular style={styles.minutes}>
-                {String(shown.m).padStart(2, '0')}m
-              </Txt>
-            </DottedDial>
-          </PressableScale>
+            <PressableScale
+              haptic="light"
+              scaleTo={0.97}
+              onPress={() => router.push('/analytics')}
+              accessibilityLabel={`${dayTitle(selected)}: ${formatDuration(total)} of screen time. Swipe left or right to change day. Double-tap for analytics.`}
+            >
+              <DottedDial size={268} progress={total / goalMs} live={isToday}>
+                <RollingText text={`${shown.h}h`} variant="hero" />
+                <RollingText text={`${String(shown.m).padStart(2, '0')}m`} variant="hero" tone="secondary" />
+              </DottedDial>
+            </PressableScale>
+          </SwipeDays>
           <Txt variant="subhead" tone="secondary" align="center" style={styles.message}>
             {goalMessage(total, goalMs, isToday)}
           </Txt>
         </Animated.View>
 
-        <Sheet style={{ paddingBottom: BOTTOM_BAR_SPACE }}>
+        <Sheet>
           <DataNotice />
 
           <Animated.View entering={enter(2)}>
@@ -173,13 +186,42 @@ export default function TodayScreen() {
               )}
             </Card>
           </Animated.View>
-        </Sheet>
-      </ScrollView>
 
-      <BottomBar>
-        <PrimaryButton label="Start a focus session" onPress={() => router.push('/focus')} />
-      </BottomBar>
-    </View>
+          <Animated.View entering={enter(6)}>
+            <SectionLabel>Focus</SectionLabel>
+          </Animated.View>
+          <Animated.View entering={enter(7)}>
+            <Card>
+              <ListRow
+                icon="timer-outline"
+                label="Focused today"
+                value={`${formatDuration(focus.focusedTodayMs)}${focus.streak > 1 ? ` · ${focus.streak}-day streak` : ''}`}
+                onPress={() => router.push('/focus')}
+              />
+              <Divider inset={48} />
+              <ListRow
+                icon="file-tray-outline"
+                label="Brain dump"
+                value={parked ? `${parked} parked` : undefined}
+                onPress={() => router.push('/notes')}
+                right={
+                  <PressableScale
+                    hitSlop={8}
+                    scaleTo={0.85}
+                    onPress={() => setDumpOpen(true)}
+                    accessibilityLabel="Park a thought"
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="add-circle" size={26} color={accent} />
+                  </PressableScale>
+                }
+              />
+            </Card>
+          </Animated.View>
+        </Sheet>
+      </Screen>
+      <BrainDumpSheet visible={dumpOpen} onClose={() => setDumpOpen(false)} />
+    </>
   );
 }
 
@@ -198,7 +240,6 @@ function goalMessage(total: number, goal: number, isToday: boolean): string {
 
 const styles = StyleSheet.create({
   dialWrap: { alignItems: 'center', marginTop: 20, marginBottom: 28 },
-  minutes: { marginTop: -2 },
   message: { marginTop: 16, paddingHorizontal: 40 },
   stackPad: { paddingHorizontal: 16, paddingBottom: 16 },
   empty: { padding: 24 },

@@ -1,12 +1,24 @@
 import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { ToastProvider } from '@/components/IslandToast';
+import { LEGAL, LEGAL_HAS_PLACEHOLDERS } from '@/legal/config';
+import '@/lib/notifications';
 import { SettingsProvider, useSettings } from '@/state/settings';
 import { UsageProvider } from '@/state/usage';
 import { useTheme } from '@/theme/useTheme';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
+SplashScreen.setOptions({ duration: 250, fade: true });
+
+if (__DEV__ && LEGAL_HAS_PLACEHOLDERS) {
+  console.warn('src/legal/config.ts still has [placeholders] — fill them in before publishing.');
+}
 
 export default function RootLayout() {
   return (
@@ -23,12 +35,18 @@ export default function RootLayout() {
 }
 
 function Navigator() {
-  const { ready } = useSettings();
+  const { ready, settings } = useSettings();
   const { colors, scheme } = useTheme();
+  const accepted = settings.acceptedTermsVersion >= LEGAL.version;
+
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(() => {});
+  }, [ready]);
+
   if (!ready) return null;
 
   return (
-    <>
+    <ToastProvider>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
@@ -40,15 +58,24 @@ function Navigator() {
           fullScreenGestureEnabled: true,
         }}
       >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="analytics" />
-        <Stack.Screen name="app/[id]" />
-        <Stack.Screen name="settings" />
-        <Stack.Screen
-          name="focus"
-          options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureDirection: 'vertical' }}
-        />
+        <Stack.Protected guard={accepted}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="analytics" />
+          <Stack.Screen name="app/[id]" />
+          <Stack.Screen name="settings" />
+          <Stack.Screen name="notes" />
+          <Stack.Screen name="licenses" />
+          <Stack.Screen
+            name="focus"
+            options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureDirection: 'vertical' }}
+          />
+        </Stack.Protected>
+        <Stack.Protected guard={!accepted}>
+          <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
+        </Stack.Protected>
+        {/* Readable before and after accepting. */}
+        <Stack.Screen name="legal/[doc]" />
       </Stack>
-    </>
+    </ToastProvider>
   );
 }

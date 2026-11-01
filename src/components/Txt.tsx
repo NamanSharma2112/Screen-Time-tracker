@@ -26,6 +26,13 @@ type Props = TextProps & {
   tabular?: boolean;
 };
 
+/** Rendered font size and line height of a variant, after the user's font-size preference. */
+export function useTextMetrics(variant: TxtVariant) {
+  const { fontScale } = useTheme();
+  const base = VARIANTS[variant];
+  return { fontSize: base.fontSize * fontScale, lineHeight: base.lineHeight * fontScale };
+}
+
 export function Txt({ variant = 'body', tone = 'primary', color, weight, align, tabular, style, ...rest }: Props) {
   const { colors, accent, fontScale } = useTheme();
   const base = VARIANTS[variant];
