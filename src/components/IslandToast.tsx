@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { haptics } from '@/lib/haptics';
-import { curves, springs } from '@/theme/motion';
+import { curves, gestureSpring, timings } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 import { Txt } from './Txt';
@@ -44,8 +44,8 @@ export const useToast = () => useContext(ToastContext);
 const PILL_W = 126;
 const PILL_H = 37;
 const OPEN_H = 64;
-/** The island is alive: it may overshoot a little, unlike the rest of the UI. */
-const ISLAND_SPRING = { duration: 550, dampingRatio: 0.72 };
+/** Quick, eased bloom — finished in a fixed time, no wobble. */
+const ISLAND_OPEN = { duration: 260, easing: curves.out };
 
 /**
  * A Dynamic-Island–style notification. It grows out of a small pill at the top of the screen
@@ -75,8 +75,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const collapse = useCallback(() => {
     clearTimer();
     content.set(withTiming(0, { duration: 120 }));
-    w.set(withDelay(80, withSpring(PILL_W, springs.smooth)));
-    h.set(withDelay(80, withSpring(PILL_H, springs.smooth)));
+    w.set(withDelay(80, withTiming(PILL_W, timings.change)));
+    h.set(withDelay(80, withTiming(PILL_H, timings.change)));
     shown.set(
       withDelay(
         300,
@@ -106,9 +106,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         w.set(PILL_W);
         h.set(PILL_H);
         shown.set(withTiming(1, { duration: 120 }));
-        w.set(withDelay(60, withSpring(openW, ISLAND_SPRING)));
-        h.set(withDelay(60, withSpring(OPEN_H, ISLAND_SPRING)));
-        content.set(withDelay(200, withTiming(1, { duration: 200, easing: curves.out })));
+        w.set(withDelay(40, withTiming(openW, ISLAND_OPEN)));
+        h.set(withDelay(40, withTiming(OPEN_H, ISLAND_OPEN)));
+        content.set(withDelay(140, withTiming(1, { duration: 160, easing: curves.out })));
       }
       timer.current = setTimeout(collapse, t.duration ?? 2600);
     },
@@ -125,14 +125,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     },
     onDeactivate: (e) => {
       if (e.translationY < -24 || e.velocityY < -500) {
-        dragY.set(withSpring(-120, { ...springs.smooth, velocity: e.velocityY }));
+        dragY.set(withSpring(-120, { ...gestureSpring, velocity: e.velocityY }));
         shown.set(
           withTiming(0, { duration: 180 }, (finished) => {
             if (finished) scheduleOnRN(setToast, null);
           }),
         );
       } else {
-        dragY.set(withSpring(0, springs.release));
+        dragY.set(withTiming(0, timings.release));
       }
     },
   });

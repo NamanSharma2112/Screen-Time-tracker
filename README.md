@@ -14,6 +14,14 @@ focus timer.
 
 ## Features
 
+The app has three tabs, so everything is one tap away:
+
+- **Today:** your screen time.
+- **Focus:** "What do you need right now?" with plain‑language options, each one tap from the
+  tool that helps.
+- **Insights:** weekly analytics.
+
+
 - **Today**: a dotted dial that fills toward your daily goal, with rolling digits. Swipe it left or
   right to change day, or tap a week ring. Below it: time per category, pickups, first pickup,
   longest session, your most‑used apps, and a Focus card.

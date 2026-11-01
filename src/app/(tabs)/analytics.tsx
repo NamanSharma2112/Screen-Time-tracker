@@ -92,8 +92,8 @@ export default function AnalyticsScreen() {
   return (
     <Screen
       header={{
-        title: offset === 0 ? 'Analytics this week' : offset === -1 ? 'Last week' : 'Analytics',
-        left: { icon: 'arrow-back', label: 'Back', onPress: () => router.back() },
+        title: offset === 0 ? 'This week' : offset === -1 ? 'Last week' : 'Insights',
+        left: { icon: 'ellipsis-horizontal', label: 'Preferences', onPress: () => router.push('/settings') },
         right:
           offset !== 0
             ? { icon: 'refresh', label: 'Back to this week', onPress: () => setOffset(0) }

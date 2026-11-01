@@ -49,7 +49,7 @@ export default function TasksScreen() {
               key={t.id}
               entering={enter(1 + Math.min(i, 5))}
               exiting={FadeOut.duration(150)}
-              layout={LinearTransition.springify().duration(450).dampingRatio(1)}
+              layout={LinearTransition.duration(200)}
             >
               <SwipeableRow label={t.title} onDelete={() => deleteTask(t.id)}>
                 <TaskCard task={t} />

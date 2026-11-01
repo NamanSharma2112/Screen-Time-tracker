@@ -7,7 +7,7 @@ import Animated, {
   FadeOutLeft,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,7 +20,7 @@ import { LEGAL } from '@/legal/config';
 import { requestNotifications } from '@/lib/notifications';
 import { useSettings } from '@/state/settings';
 import { useUsage } from '@/state/usage';
-import { springs, useEntering } from '@/theme/motion';
+import { timings, useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 type Step = 'welcome' | 'privacy' | 'usage' | 'notifications';
@@ -348,7 +348,7 @@ function Dot({ active }: { active: boolean }) {
   const { colors, accent } = useTheme();
   const a = useSharedValue(active ? 1 : 0);
   useEffect(() => {
-    a.set(withSpring(active ? 1 : 0, springs.smooth));
+    a.set(withTiming(active ? 1 : 0, timings.change));
   }, [active, a]);
   const style = useAnimatedStyle(() => ({ width: 7 + a.get() * 15, opacity: 0.35 + a.get() * 0.65 }));
   return <Animated.View style={[styles.dot, { backgroundColor: active ? accent : colors.textTertiary }, style]} />;

@@ -25,7 +25,7 @@ export function AppUsageRow({ app, ms, share, detail, index, onPress }: Props) {
   return (
     // The card around this row owns the entrance; the row only animates re-ordering when the
     // ranking changes (e.g. switching days), so it reads as the same list shuffling.
-    <Animated.View layout={LinearTransition.springify().duration(450).dampingRatio(1)}>
+    <Animated.View layout={LinearTransition.duration(200)}>
       <PressableScale
         onPress={onPress}
         scaleTo={0.98}

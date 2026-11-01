@@ -7,13 +7,12 @@ import Animated, {
   useReducedMotion,
   useSharedValue,
   withDelay,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 
 import { dayLetter, dayLong, formatDuration, todayKey } from '@/lib/time';
-import { springs, timings } from '@/theme/motion';
+import { timings } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 import { PressableScale } from './PressableScale';
@@ -79,7 +78,7 @@ function DayRing({ index, letter, label, total, progress, future, selected, onPr
 
   const sel = useSharedValue(selected ? 1 : 0);
   useEffect(() => {
-    sel.set(withSpring(selected ? 1 : 0, springs.smooth));
+    sel.set(withTiming(selected ? 1 : 0, timings.change));
   }, [selected, sel]);
   const bgStyle = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(sel.value, [0, 1], [colors.circleButton, accentSoft]),

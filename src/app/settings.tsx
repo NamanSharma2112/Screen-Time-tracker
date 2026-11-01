@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import Constants from 'expo-constants';
 import { useEffect, useState, type ComponentProps } from 'react';
 import { Linking, StyleSheet } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { PrimaryButton } from '@/components/Buttons';
 import { ConfirmSheet } from '@/components/ConfirmSheet';
@@ -21,7 +21,7 @@ import { requestNotifications } from '@/lib/notifications';
 import { SettingsPreview, useSettings, type Settings, type ThemePreference } from '@/state/settings';
 import { useUsage } from '@/state/usage';
 import { ACCENTS } from '@/theme/colors';
-import { useEntering, springs } from '@/theme/motion';
+import { timings, useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 import { pinWidget, widgetsAvailable } from '@/widget';
 
@@ -407,7 +407,7 @@ function ThemeCard({
   const { colors, accent, accentSoft } = useTheme();
   const s = useSharedValue(selected ? 1 : 0);
   useEffect(() => {
-    s.set(withSpring(selected ? 1 : 0, springs.smooth));
+    s.set(withTiming(selected ? 1 : 0, timings.change));
   }, [selected, s]);
   const frame = useAnimatedStyle(() => ({
     borderColor: interpolateColor(s.value, [0, 1], ['rgba(0,0,0,0)', accent]),
@@ -440,7 +440,7 @@ function ThemeCard({
 function Swatch({ color, selected, onPress }: { color: string; selected: boolean; onPress: () => void }) {
   const s = useSharedValue(selected ? 1 : 0);
   useEffect(() => {
-    s.set(withSpring(selected ? 1 : 0, springs.pop));
+    s.set(withTiming(selected ? 1 : 0, timings.change));
   }, [selected, s]);
   const ring = useAnimatedStyle(() => ({ opacity: s.value, transform: [{ scale: 0.85 + s.value * 0.15 }] }));
   const dot = useAnimatedStyle(() => ({ transform: [{ scale: 1 - s.value * 0.22 }] }));

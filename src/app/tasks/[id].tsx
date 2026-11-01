@@ -8,7 +8,7 @@ import Animated, {
   LinearTransition,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
 import { MinutesPill } from '@/components/AddTaskSheet';
@@ -22,10 +22,10 @@ import { TextField } from '@/components/TextField';
 import { Txt } from '@/components/Txt';
 import { haptics } from '@/lib/haptics';
 import { addStep, deleteStep, taskProgress, tasksStore, toggleStep, type Step } from '@/state/tasks';
-import { springs, useEntering } from '@/theme/motion';
+import { timings, useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
-const layout = LinearTransition.springify().duration(450).dampingRatio(1);
+const layout = LinearTransition.duration(200);
 
 export default function TaskDetailScreen() {
   const enter = useEntering();
@@ -126,7 +126,7 @@ function StepRow({ step, onToggle, onStart }: { step: Step; onToggle: () => void
   const { colors, accent, accentSoft } = useTheme();
   const v = useSharedValue(step.done ? 1 : 0);
   useEffect(() => {
-    v.set(withSpring(step.done ? 1 : 0, springs.pop));
+    v.set(withTiming(step.done ? 1 : 0, timings.change));
   }, [step.done, v]);
   const fill = useAnimatedStyle(() => ({ opacity: v.get(), transform: [{ scale: 0.6 + v.get() * 0.4 }] }));
   return (

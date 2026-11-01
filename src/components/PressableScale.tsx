@@ -1,9 +1,9 @@
 import { haptics } from '@/lib/haptics';
 import type { ReactNode } from 'react';
 import { Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
-import { springs } from '@/theme/motion';
+import { timings } from '@/theme/motion';
 
 type Props = Omit<PressableProps, 'style' | 'children'> & {
   children: ReactNode;
@@ -42,11 +42,11 @@ export function PressableScale({
       {...rest}
       style={containerStyle}
       onPressIn={(e) => {
-        pressed.set(withSpring(1, springs.press));
+        pressed.set(withTiming(1, timings.press));
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        pressed.set(withSpring(0, springs.release));
+        pressed.set(withTiming(0, timings.release));
         onPressOut?.(e);
       }}
       onPress={(e) => {

@@ -9,7 +9,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSequence,
-  withSpring,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -22,7 +21,7 @@ import { TextField } from '@/components/TextField';
 import { Txt } from '@/components/Txt';
 import { haptics } from '@/lib/haptics';
 import { addMenuItem, deleteMenuItem, menuStore, randomMenuItem, type MenuItem } from '@/state/menu';
-import { curves, springs, useEntering } from '@/theme/motion';
+import { curves, timings, useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 /** Delays between shuffle ticks: fast at first, slowing like a wheel coming to rest. */
@@ -64,7 +63,7 @@ export default function MenuScreen() {
           if (i < TICKS.length - 1) haptics.selection();
           else {
             haptics.success();
-            pop.set(withSequence(withTiming(1.06, { duration: 120 }), withSpring(1, springs.pop)));
+            pop.set(withSequence(withTiming(1.06, { duration: 120 }), withTiming(1, timings.change)));
             setSpinning(false);
             setPicked(true);
           }
@@ -135,7 +134,7 @@ export default function MenuScreen() {
           {items.map((m, i) => (
             <Animated.View
               key={m.id}
-              layout={LinearTransition.springify().duration(450).dampingRatio(1)}
+              layout={LinearTransition.duration(200)}
               exiting={FadeOut.duration(150)}
               entering={i >= 8 ? SlideInDown.duration(250) : undefined}
             >

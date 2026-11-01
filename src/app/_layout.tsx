@@ -65,8 +65,7 @@ function Navigator() {
         }}
       >
         <Stack.Protected guard={accepted}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="analytics" />
+          <Stack.Screen name="(tabs)" />
           <Stack.Screen name="app/[id]" />
           <Stack.Screen name="settings" />
           <Stack.Screen name="notes" />

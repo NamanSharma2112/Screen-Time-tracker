@@ -6,12 +6,8 @@ import Animated from 'react-native-reanimated';
 
 import { AppUsageRow } from '@/components/AppUsageRow';
 import { StackedLine } from '@/components/Bars';
-import { BrainDumpSheet } from '@/components/BrainDumpSheet';
-import { CheckInCard } from '@/components/CheckInCard';
-import { PrimaryButton } from '@/components/Buttons';
 import { DataNotice } from '@/components/DataNotice';
 import { DottedDial } from '@/components/DottedDial';
-import { ListRow } from '@/components/ListRow';
 import { PressableScale } from '@/components/PressableScale';
 import { RollingText } from '@/components/RollingText';
 import { Screen } from '@/components/Screen';
@@ -19,15 +15,11 @@ import { StatColumns } from '@/components/StatColumns';
 import { Badge, Card, Divider, SectionLabel, Sheet } from '@/components/Surfaces';
 import { SwipeDays } from '@/components/SwipeDays';
 import { Txt } from '@/components/Txt';
-import { UpNextCard } from '@/components/UpNextCard';
 import { WeekStrip } from '@/components/WeekStrip';
 import { CATEGORIES } from '@/data/categories';
 import { haptics } from '@/lib/haptics';
 import { dayTitle, formatClock, formatDuration, MINUTE, parseKey, splitDuration, todayKey, weekKeys } from '@/lib/time';
-import { focusHistory, focusStats } from '@/state/focus';
-import { notesStore } from '@/state/notes';
 import { useSettings } from '@/state/settings';
-import { tasksStore } from '@/state/tasks';
 import { useDays, useUsage } from '@/state/usage';
 import { useEntering } from '@/theme/motion';
 import { refreshWidgets } from '@/widget';
@@ -39,10 +31,6 @@ export default function TodayScreen() {
   const { colors, accent, accentSoft } = useTheme();
   const { apps, source, refresh } = useUsage();
   const [refreshing, setRefreshing] = useState(false);
-  const [dumpOpen, setDumpOpen] = useState(false);
-  const focus = focusStats(focusHistory.use());
-  const parked = notesStore.use().filter((n) => !n.done).length;
-  const openSteps = tasksStore.use().reduce((n, t) => n + t.steps.filter((s) => !s.done).length, 0);
 
   const today = todayKey();
   const week = useMemo(() => weekKeys(parseKey(today), settings.weekStart), [settings.weekStart, today]);
@@ -72,9 +60,8 @@ export default function TodayScreen() {
           title: isToday ? 'Screen time' : dayTitle(selected),
           subtitle: source === 'demo' ? <Badge label="Sample data" /> : undefined,
           left: { icon: 'ellipsis-horizontal', label: 'Preferences', onPress: () => router.push('/settings') },
-          right: { icon: 'bar-chart-outline', label: 'Weekly analytics', onPress: () => router.push('/analytics') },
+          right: { icon: 'share-outline', label: 'Weekly recap', onPress: () => router.push('/recap') },
         }}
-        bottom={<PrimaryButton label="Start a focus session" onPress={() => router.push('/focus')} />}
         refreshControl={(top) => (
           <RefreshControl
             refreshing={refreshing}
@@ -219,74 +206,8 @@ export default function TodayScreen() {
               )}
             </Card>
           </Animated.View>
-
-          {isToday ? (
-            <>
-              <Animated.View entering={enter(6)}>
-                <SectionLabel>Up next</SectionLabel>
-              </Animated.View>
-              <Animated.View entering={enter(6)}>
-                <UpNextCard />
-              </Animated.View>
-            </>
-          ) : null}
-
-          {selected <= today ? (
-            <>
-              <Animated.View entering={enter(7)}>
-                <SectionLabel>{isToday ? 'How are you today?' : `How you felt · ${dayTitle(selected)}`}</SectionLabel>
-              </Animated.View>
-              <Animated.View entering={enter(7)}>
-                <CheckInCard day={selected} />
-              </Animated.View>
-            </>
-          ) : null}
-
-          <Animated.View entering={enter(8)}>
-            <SectionLabel>Toolkit</SectionLabel>
-          </Animated.View>
-          <Animated.View entering={enter(8)}>
-            <Card>
-              <ListRow
-                icon="timer-outline"
-                label="Focused today"
-                value={`${formatDuration(focus.focusedTodayMs)}${focus.streak > 1 ? ` · ${focus.streak}-day streak` : ''}`}
-                onPress={() => router.push('/focus')}
-              />
-              <Divider inset={48} />
-              <ListRow
-                icon="file-tray-outline"
-                label="Brain dump"
-                value={parked ? `${parked} parked` : undefined}
-                onPress={() => router.push('/notes')}
-                right={
-                  <PressableScale
-                    hitSlop={8}
-                    scaleTo={0.85}
-                    onPress={() => setDumpOpen(true)}
-                    accessibilityLabel="Park a thought"
-                    accessibilityRole="button"
-                  >
-                    <Ionicons name="add-circle" size={26} color={accent} />
-                  </PressableScale>
-                }
-              />
-              <Divider inset={48} />
-              <ListRow
-                icon="list-outline"
-                label="Tasks"
-                value={openSteps ? `${openSteps} step${openSteps === 1 ? '' : 's'} to go` : undefined}
-                onPress={() => router.push('/tasks')}
-              />
-              <Divider inset={48} />
-              <ListRow icon="sparkles-outline" label="Dopamine menu" onPress={() => router.push('/menu')} />
-              <Divider inset={48} />
-              <ListRow icon="share-outline" label="Weekly recap" onPress={() => router.push('/recap')} />
-            </Card>
-          </Animated.View>
         </Sheet>
       </Screen>
-      <BrainDumpSheet visible={dumpOpen} onClose={() => setDumpOpen(false)} />
     </>
   );
 }

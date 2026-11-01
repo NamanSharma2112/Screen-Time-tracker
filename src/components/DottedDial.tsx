@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, type ReactNode } from 'react';
+import { memo, useEffect, useId, useMemo, type ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
@@ -6,13 +6,13 @@ import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
-  withDelay,
   withRepeat,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, G, Mask, Rect } from 'react-native-svg';
 
+import { timings } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -37,7 +37,29 @@ type Props = {
   children?: ReactNode;
 };
 
-export function DottedDial({ size, progress, color, live, children }: Props) {
+type Dot = { key: string; x: number; y: number; deg: number; size: number; opacity: number; dash?: boolean };
+
+function renderDots(dots: Dot[], fill: string) {
+  return dots.map((d) =>
+    d.dash ? (
+      <Rect
+        key={d.key}
+        x={-d.size * 0.9}
+        y={-d.size / 2}
+        width={d.size * 1.8}
+        height={d.size}
+        rx={d.size / 2.5}
+        fill={fill}
+        opacity={d.opacity}
+        transform={`translate(${d.x} ${d.y}) rotate(${d.deg})`}
+      />
+    ) : (
+      <Circle key={d.key} cx={d.x} cy={d.y} r={d.size / 2} fill={fill} opacity={d.opacity} />
+    ),
+  );
+}
+
+export const DottedDial = memo(function DottedDial({ size, progress, color, live, children }: Props) {
   const { colors, accent, accentSoft } = useTheme();
   const tint = color ?? accent;
   const reduceMotion = useReducedMotion();
@@ -65,15 +87,15 @@ export function DottedDial({ size, progress, color, live, children }: Props) {
     [c, R],
   );
 
+  // ~240 SVG nodes per layer: build them once per colour, not on every render.
+  const trackDots = useMemo(() => renderDots(dots, colors.track), [dots, colors.track]);
+  const litDots = useMemo(() => renderDots(dots, tint), [dots, tint]);
+
   // Sweep the lit dots in like an Activity ring filling up.
   const p = useSharedValue(0);
   useEffect(() => {
     const target = Math.max(0, Math.min(1, progress));
-    p.set(
-      reduceMotion
-        ? target
-        : withDelay(120, withTiming(target, { duration: 1100, easing: Easing.bezier(0.22, 1, 0.36, 1) })),
-    );
+    p.set(reduceMotion ? target : withTiming(target, timings.reveal));
   }, [progress, reduceMotion, p]);
 
   const sweepProps = useAnimatedProps(() => ({
@@ -97,25 +119,6 @@ export function DottedDial({ size, progress, color, live, children }: Props) {
     );
   }, [live, reduceMotion, breathe]);
   const coreStyle = useAnimatedStyle(() => ({ transform: [{ scale: breathe.value }] }));
-
-  const renderDots = (fill: string, withOpacity: boolean) =>
-    dots.map((d) =>
-      d.dash ? (
-        <Rect
-          key={d.key}
-          x={-d.size * 0.9}
-          y={-d.size / 2}
-          width={d.size * 1.8}
-          height={d.size}
-          rx={d.size / 2.5}
-          fill={fill}
-          opacity={withOpacity ? d.opacity : 1}
-          transform={`translate(${d.x} ${d.y}) rotate(${d.deg})`}
-        />
-      ) : (
-        <Circle key={d.key} cx={d.x} cy={d.y} r={d.size / 2} fill={fill} opacity={withOpacity ? d.opacity : 1} />
-      ),
-    );
 
   const coreSize = size * 0.54;
 
@@ -151,15 +154,15 @@ export function DottedDial({ size, progress, color, live, children }: Props) {
             />
           </Mask>
         </Defs>
-        <G>{renderDots(colors.track, true)}</G>
-        <G mask={`url(#${maskId})`}>{renderDots(tint, true)}</G>
+        <G>{trackDots}</G>
+        <G mask={`url(#${maskId})`}>{litDots}</G>
       </Svg>
       <View style={[StyleSheet.absoluteFill, styles.center]} pointerEvents="none">
         {children}
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   core: { position: 'absolute' },

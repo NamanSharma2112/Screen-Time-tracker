@@ -5,12 +5,11 @@ import Animated, {
   useReducedMotion,
   useSharedValue,
   withDelay,
-  withSpring,
   withTiming,
   type WithTimingConfig,
 } from 'react-native-reanimated';
 
-import { springs, timings } from '@/theme/motion';
+import { timings } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 /**
@@ -115,10 +114,10 @@ export function RiseBar({
   children: ReactNode;
   dim?: boolean;
 }) {
-  const p = useGrow(1, delay, { ...timings.reveal, duration: 650 });
+  const p = useGrow(1, delay, { ...timings.reveal, duration: 450 });
   const o = useSharedValue(dim ? 0.38 : 1);
   useEffect(() => {
-    o.set(withSpring(dim ? 0.38 : 1, springs.smooth));
+    o.set(withTiming(dim ? 0.38 : 1, timings.change));
   }, [dim, o]);
   const slot = useAnimatedStyle(() => ({ opacity: o.value }));
   const bar = useAnimatedStyle(() => ({ transform: [{ translateY: height * (1 - p.value) }] }));
@@ -145,7 +144,7 @@ export function WaveBar({
   width: number;
   color: string;
 }) {
-  const p = useGrow(1, delay, { ...timings.reveal, duration: 550 });
+  const p = useGrow(1, delay, { ...timings.reveal, duration: 400 });
   const style = useAnimatedStyle(() => ({ transform: [{ scaleY: p.value }] }));
   return <Animated.View style={[{ width, height, borderRadius: width / 2, backgroundColor: color }, style]} />;
 }

@@ -14,7 +14,7 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { haptics } from '@/lib/haptics';
-import { curves, springs } from '@/theme/motion';
+import { curves, gestureSpring, timings } from '@/theme/motion';
 
 const THRESHOLD = 110;
 
@@ -59,7 +59,7 @@ export function SwipeableRow({
           }),
         );
       } else {
-        x.set(withSpring(0, { ...springs.release, velocity: e.velocityX }));
+        x.set(withSpring(0, { ...gestureSpring, velocity: e.velocityX }));
       }
     },
   });
@@ -72,7 +72,7 @@ export function SwipeableRow({
     transform: [
       {
         scale: armed.get()
-          ? withSpring(1.15, springs.pop)
+          ? withTiming(1.15, timings.change)
           : interpolate(x.get(), [-20, -THRESHOLD], [0.7, 1], Extrapolation.CLAMP),
       },
     ],

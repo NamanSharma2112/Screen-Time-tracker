@@ -2,11 +2,11 @@ import { haptics } from '@/lib/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { withAlpha } from '@/theme/colors';
-import { springs, timings } from '@/theme/motion';
+import { timings } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 import { PressableScale } from './PressableScale';
@@ -77,7 +77,7 @@ export function HoldButton({
       accessibilityHint="Press and hold to confirm"
       onPressIn={() => {
         done.current = false;
-        pressed.set(withSpring(1, springs.press));
+        pressed.set(withTiming(1, timings.press));
         progress.set(withTiming(1, { duration, easing: Easing.linear }));
         haptics.light();
         // Ticks speed up as the fill approaches the end.
@@ -88,7 +88,7 @@ export function HoldButton({
           setTimeout(() => {
             done.current = true;
             haptics.success();
-            pressed.set(withSpring(0, springs.release));
+            pressed.set(withTiming(0, timings.release));
             onComplete();
             timers.current.push(setTimeout(() => progress.set(withTiming(0, timings.change)), 450));
           }, duration),
@@ -97,7 +97,7 @@ export function HoldButton({
       onPressOut={() => {
         if (done.current) return;
         clear();
-        pressed.set(withSpring(0, springs.release));
+        pressed.set(withTiming(0, timings.release));
         progress.set(withTiming(0, timings.snap));
       }}
       // Screen readers can't hold, so a double-tap activates directly.

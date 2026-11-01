@@ -5,10 +5,10 @@ import Animated, {
   useReducedMotion,
   useSharedValue,
   withDelay,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
-import { springs } from '@/theme/motion';
+import { timings } from '@/theme/motion';
 
 import { Txt, useTextMetrics, type TxtVariant } from './Txt';
 
@@ -94,7 +94,7 @@ function DigitColumn({
   useEffect(() => {
     const target = -digit * lineHeight;
     // Lower-order digits move first, like a mechanical counter.
-    y.set(reduceMotion ? target : withDelay(index * 30, withSpring(target, springs.smooth)));
+    y.set(reduceMotion ? target : withDelay(index * 30, withTiming(target, timings.change)));
   }, [digit, lineHeight, index, reduceMotion, y]);
 
   const strip = useAnimatedStyle(() => ({ transform: [{ translateY: y.get() }] }));

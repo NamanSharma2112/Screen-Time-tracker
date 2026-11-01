@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { haptics } from '@/lib/haptics';
-import { springs } from '@/theme/motion';
+import { timings } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 const W = 51;
@@ -21,7 +21,7 @@ export function Switch({ value, onChange, label }: { value: boolean; onChange: (
   const pressed = useSharedValue(0);
 
   useEffect(() => {
-    on.set(withSpring(value ? 1 : 0, springs.smooth));
+    on.set(withTiming(value ? 1 : 0, timings.change));
   }, [value, on]);
 
   const track = useAnimatedStyle(() => ({
@@ -40,8 +40,8 @@ export function Switch({ value, onChange, label }: { value: boolean; onChange: (
       accessibilityLabel={label}
       accessibilityState={{ checked: value }}
       hitSlop={8}
-      onPressIn={() => pressed.set(withSpring(1, springs.press))}
-      onPressOut={() => pressed.set(withSpring(0, springs.release))}
+      onPressIn={() => pressed.set(withTiming(1, timings.press))}
+      onPressOut={() => pressed.set(withTiming(0, timings.release))}
       onPress={() => {
         haptics.light();
         onChange(!value);

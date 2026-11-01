@@ -8,7 +8,7 @@ import Animated, {
   LinearTransition,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
 import { BrainDumpSheet } from '@/components/BrainDumpSheet';
@@ -20,10 +20,10 @@ import { SwipeableRow } from '@/components/SwipeableRow';
 import { Txt } from '@/components/Txt';
 import { haptics } from '@/lib/haptics';
 import { clearDoneNotes, deleteNote, notesStore, toggleNote, type Note } from '@/state/notes';
-import { springs, useEntering } from '@/theme/motion';
+import { timings, useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
-const layout = LinearTransition.springify().duration(450).dampingRatio(1);
+const layout = LinearTransition.duration(200);
 
 export default function NotesScreen() {
   const enter = useEntering();
@@ -100,7 +100,7 @@ function NoteRow({ note }: { note: Note }) {
   const { colors, accent } = useTheme();
   const check = useSharedValue(note.done ? 1 : 0);
   useEffect(() => {
-    check.set(withSpring(note.done ? 1 : 0, springs.pop));
+    check.set(withTiming(note.done ? 1 : 0, timings.change));
   }, [note.done, check]);
   const fill = useAnimatedStyle(() => ({ opacity: check.get(), transform: [{ scale: 0.6 + check.get() * 0.4 }] }));
 

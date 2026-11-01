@@ -14,7 +14,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { curves, springs } from '@/theme/motion';
+import { curves, gestureSpring } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 import { Txt } from './Txt';
@@ -76,12 +76,12 @@ export function BottomSheet({ visible, onClose, title, children, locked, draggab
     onDeactivate: (e) => {
       if (e.velocityY > 600 || e.translationY > height.get() * 0.4) {
         y.set(
-          withSpring(height.get(), { ...springs.smooth, velocity: e.velocityY }, (finished) => {
+          withSpring(height.get(), { ...gestureSpring, velocity: e.velocityY }, (finished) => {
             if (finished) scheduleOnRN(onClose);
           }),
         );
       } else {
-        y.set(withSpring(0, { ...springs.release, velocity: e.velocityY }));
+        y.set(withSpring(0, { ...gestureSpring, velocity: e.velocityY }));
       }
     },
   });

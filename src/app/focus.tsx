@@ -9,7 +9,7 @@ import Animated, {
   LinearTransition,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 
 import { BodyDouble } from '@/components/BodyDouble';
@@ -40,7 +40,7 @@ import {
 import { notesStore } from '@/state/notes';
 import { useSettings } from '@/state/settings';
 import { taskProgress, tasksStore, toggleStep } from '@/state/tasks';
-import { springs, useEntering } from '@/theme/motion';
+import { timings, useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 const LENGTHS = [5, 15, 25, 45, 60];
@@ -57,7 +57,13 @@ export default function FocusScreen() {
   const { settings, update } = useSettings();
   const toast = useToast();
   // Opened from a task step or the dopamine menu: /focus?minutes=10&label=…&task=…&step=…
-  const params = useLocalSearchParams<{ minutes?: string; label?: string; task?: string; step?: string }>();
+  const params = useLocalSearchParams<{
+    minutes?: string;
+    label?: string;
+    task?: string;
+    step?: string;
+    autostart?: string;
+  }>();
   const paramMinutes = Number(params.minutes) || 0;
   const active = activeFocus.use();
   const history = focusHistory.use();
@@ -140,8 +146,7 @@ export default function FocusScreen() {
   const remaining = active ? Math.max(0, active.start + active.plannedMs - now) : minutes * MINUTE;
   const progress = active ? Math.min(1, (now - active.start) / active.plannedMs) : justFinished ? 1 : 0;
 
-  const begin = async () => {
-    setJustFinished(false);
+  const startSession = async () => {
     const plannedMs = minutes * MINUTE;
     startFocus(plannedMs, { label: params.label, taskId: params.task, stepId: params.step });
     if (settings.focusReminders) {
@@ -151,6 +156,23 @@ export default function FocusScreen() {
       if (current) activeFocus.set({ ...current, notificationId: id });
     }
   };
+
+  const begin = () => {
+    setJustFinished(false);
+    void startSession();
+  };
+
+  // Quick-start from the Focus tab ("15 min") begins immediately — first ask, then do.
+  const autostarted = useRef(false);
+  useEffect(() => {
+    if (params.autostart !== '1' || autostarted.current) return;
+    autostarted.current = true;
+    // Wait for any saved session to load so a running one is never replaced.
+    activeFocus.ready.then(() => {
+      if (!activeFocus.get()) void startSession();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const endEarly = () => {
     const id = active?.notificationId;
@@ -183,9 +205,9 @@ export default function FocusScreen() {
         }}
         bottom={
           state === 'idle' ? (
-            <HoldButton label="Hold to start" onComplete={begin} duration={900} />
+            <PrimaryButton label={`Start ${minutes} min`} onPress={begin} />
           ) : state === 'running' ? (
-            <HoldButton label="Hold to end early" onComplete={endEarly} />
+            <HoldButton label="Hold to stop" onComplete={endEarly} duration={700} />
           ) : (
             <PrimaryButton label="Done" onPress={() => router.back()} />
           )
@@ -270,7 +292,7 @@ export default function FocusScreen() {
           ) : null}
 
           {state !== 'running' ? (
-            <Animated.View entering={enter(1)} layout={LinearTransition.springify().duration(450).dampingRatio(1)}>
+            <Animated.View entering={enter(1)} layout={LinearTransition.duration(200)}>
               <Card>
                 <ListRowToggle
                   icon="people-outline"
@@ -296,7 +318,7 @@ export default function FocusScreen() {
             </Animated.View>
           ) : null}
 
-          <Animated.View entering={enter(1)} layout={LinearTransition.springify().duration(450).dampingRatio(1)}>
+          <Animated.View entering={enter(1)} layout={LinearTransition.duration(200)}>
             <Card>
               <StatColumns
                 stats={[
@@ -308,7 +330,7 @@ export default function FocusScreen() {
             </Card>
           </Animated.View>
 
-          <Animated.View entering={enter(2)} layout={LinearTransition.springify().duration(450).dampingRatio(1)}>
+          <Animated.View entering={enter(2)} layout={LinearTransition.duration(200)}>
             <SectionLabel
               right={
                 notes.length ? (
@@ -401,7 +423,7 @@ function Chip({
   const { colors, accent, accentSoft } = useTheme();
   const s = useSharedValue(selected ? 1 : 0);
   useEffect(() => {
-    s.set(withSpring(selected ? 1 : 0, springs.smooth));
+    s.set(withTiming(selected ? 1 : 0, timings.change));
   }, [selected, s]);
   const style = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(s.get(), [0, 1], [colors.circleButton, accentSoft]),
@@ -440,7 +462,7 @@ function ReflectTile({
   const { colors, accent, accentSoft } = useTheme();
   const s = useSharedValue(selected ? 1 : 0);
   useEffect(() => {
-    s.set(withSpring(selected ? 1 : 0, springs.smooth));
+    s.set(withTiming(selected ? 1 : 0, timings.change));
   }, [selected, s]);
   const style = useAnimatedStyle(() => ({
     backgroundColor: interpolateColor(s.get(), [0, 1], [colors.card, accentSoft]),

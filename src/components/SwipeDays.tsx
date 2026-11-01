@@ -6,11 +6,12 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { haptics } from '@/lib/haptics';
-import { springs } from '@/theme/motion';
+import { gestureSpring, timings } from '@/theme/motion';
 
 type Props = {
   children: ReactNode;
@@ -44,10 +45,10 @@ export function SwipeDays({ children, canPrev, canNext, onChange }: Props) {
         scheduleOnRN(haptics.selection);
         // New day enters from the side the finger came from.
         dx.set(dir * 70);
-        dx.set(withSpring(0, springs.smooth));
+        dx.set(withTiming(0, timings.change));
       } else {
         if (dir !== 0) scheduleOnRN(haptics.rigid);
-        dx.set(withSpring(0, { ...springs.release, velocity: e.velocityX * 0.45 }));
+        dx.set(withSpring(0, { ...gestureSpring, velocity: e.velocityX * 0.45 }));
       }
     },
   });

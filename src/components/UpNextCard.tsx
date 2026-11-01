@@ -41,11 +41,7 @@ export function UpNextCard() {
           const left = t.at - now;
           const soon = left <= t.warnMinutes * MINUTE;
           return (
-            <Animated.View
-              key={t.id}
-              exiting={FadeOut.duration(150)}
-              layout={LinearTransition.springify().duration(450).dampingRatio(1)}
-            >
+            <Animated.View key={t.id} exiting={FadeOut.duration(150)} layout={LinearTransition.duration(200)}>
               {i > 0 ? <Divider inset={16} /> : null}
               <View style={styles.item}>
                 <View style={{ flex: 1, gap: 6 }}>
@@ -105,7 +101,7 @@ export function UpNextCard() {
 const QUICK = [15, 30, 60, 120];
 const WARN = [5, 10, 15, 30];
 
-function AddTransitionSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+export function AddTransitionSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const toast = useToast();
   const { settings } = useSettings();
   const [title, setTitle] = useState('');
