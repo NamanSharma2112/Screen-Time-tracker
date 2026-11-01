@@ -29,6 +29,21 @@ focus timer.
   - A "session complete" notification, a streak that doesn't break before the day is over, and
     wording that never shames you for stopping.
 - **Brain dump list**: tick items off, swipe left to delete, and clear finished ones.
+- **Body double**: during focus, the screen stays on with a softly breathing companion,
+  encouraging lines, and optional brown or pink noise (generated in‑repo, no licensing issues).
+- **Task breakdown**: split a daunting task into tiny steps, each with its own 5–25 min timer.
+  Starting a step opens Focus with that step's name and length, and finishing marks it done.
+- **Dopamine menu**: your own list of quick, healthy alternatives. "Pick something for me" spins
+  through them like a slot reel, with haptic ticks, and offers a timer for the one it lands on.
+- **Up next**: set your next thing and get a notification before it (5–30 min heads‑up), plus a
+  live countdown on Today.
+- **Daily check‑in**: energy, mood and focus rated 1–5. Analytics shows them as a weekly grid and
+  compares focus on days you stayed under your goal with days you went over.
+- **Hyperfocus check‑in**: a background check about every 15 minutes, sending one gentle nudge
+  when a single app has held you past your threshold. It can cover social/entertainment apps only,
+  or all apps.
+- **Home‑screen widget**: today's dial and total. Add it from Preferences or from the launcher.
+- **Weekly recap**: a story‑sized card you can share as an image.
 - **Onboarding**: welcome, then privacy promise and consent to the Terms, then the Usage access
   *prominent disclosure* that Google Play requires, then notifications.
 - **Preferences**:
@@ -70,7 +85,8 @@ npm install
 npm run go                # starts Metro for Expo Go — scan the QR with the Expo Go app
 ```
 
-Expo Go runs the full UI on realistic sample data. (Because `expo-dev-client` is installed, plain
+Expo Go runs the full UI on realistic sample data. The widget and the hyperfocus check need the
+installed app, so they're hidden in Expo Go. (Because `expo-dev-client` is installed, plain
 `npx expo start` targets development builds; `npm run go` forces Expo Go. If your phone and computer
 aren't on the same Wi‑Fi, use `npx expo start --go --tunnel`.)
 
@@ -97,7 +113,10 @@ entitlement. Until that's added, iOS uses sample data.
 
 ```
 src/app/            screens (Expo Router): onboarding, index, analytics, app/[id], focus, notes,
-                    settings, legal/[doc], licenses
+                    tasks/, menu, recap, settings, legal/[doc], licenses
+src/widget/         Android home-screen widget (react-native-android-widget)
+src/background/     headless work: widget task handler, hyperfocus check (expo-background-task)
+index.ts            app entry — registers headless handlers, then Expo Router
 src/components/     UI kit: DottedDial, WeekStrip, WeekBars, HourlyWave, SessionTimeline,
                     OptionSheet, HoldButton, PressableScale, ListRow, …
 src/data/           types, aggregation (sessions → day summaries), demo + device sources
@@ -114,10 +133,14 @@ npm run typecheck
 npm run lint
 npm run legal:docs                # in-app legal text → docs/legal/*.md + *.html for hosting
 npm run legal:licenses            # refresh the open-source licences screen
-node scripts/generate-assets.mjs  # icon, adaptive icon, splash, notification icon, Play graphics
+node scripts/generate-assets.mjs  # icon, adaptive icon, splash, notification icon, widget preview, Play graphics
+python3 scripts/generate-ambient.py  # brown/pink noise loops for body-double mode
 ```
 
 ## Privacy
+
+- **No internet:** release builds (EAS `production`/`preview` profiles) set `NO_INTERNET=1`, which
+  removes the `INTERNET` permission, so the app can't send data anywhere. See `app.config.ts`.
 
 - **No outgoing data:** no backend, accounts, analytics, crash reporting or ads.
 - **Usage stats:** read on demand and kept only in memory.

@@ -6,6 +6,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { AppUsageRow } from '@/components/AppUsageRow';
 import { CircleButton } from '@/components/CircleButton';
+import { FeelingsCard } from '@/components/FeelingsCard';
 import { HourlyWave } from '@/components/HourlyWave';
 import { ListRow } from '@/components/ListRow';
 import { RollingText } from '@/components/RollingText';
@@ -96,7 +97,7 @@ export default function AnalyticsScreen() {
         right:
           offset !== 0
             ? { icon: 'refresh', label: 'Back to this week', onPress: () => setOffset(0) }
-            : { icon: 'ellipsis-horizontal', label: 'Preferences', onPress: () => router.push('/settings') },
+            : { icon: 'share-outline', label: 'Share weekly recap', onPress: () => router.push('/recap') },
       }}
     >
       <View style={styles.rangeRow}>
@@ -175,6 +176,11 @@ export default function AnalyticsScreen() {
               </View>
             ))}
           </Card>
+        </Animated.View>
+
+        <Animated.View entering={enter(4)}>
+          <SectionLabel>How you felt</SectionLabel>
+          <FeelingsCard week={week} days={days} goalMs={goalMs} />
         </Animated.View>
 
         <Animated.View entering={enter(4)}>

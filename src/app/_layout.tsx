@@ -6,6 +6,7 @@ import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { syncHyperfocusTask } from '@/background/hyperfocus';
 import { ToastProvider } from '@/components/IslandToast';
 import { LEGAL, LEGAL_HAS_PLACEHOLDERS } from '@/legal/config';
 import '@/lib/notifications';
@@ -43,6 +44,11 @@ function Navigator() {
     if (ready) SplashScreen.hideAsync().catch(() => {});
   }, [ready]);
 
+  // Keep the background hyperfocus check registered only while the user wants it.
+  useEffect(() => {
+    if (ready) syncHyperfocusTask(accepted && settings.hyperfocusMinutes > 0);
+  }, [ready, accepted, settings.hyperfocusMinutes]);
+
   if (!ready) return null;
 
   return (
@@ -65,6 +71,10 @@ function Navigator() {
           <Stack.Screen name="settings" />
           <Stack.Screen name="notes" />
           <Stack.Screen name="licenses" />
+          <Stack.Screen name="tasks/index" />
+          <Stack.Screen name="tasks/[id]" />
+          <Stack.Screen name="menu" />
+          <Stack.Screen name="recap" />
           <Stack.Screen
             name="focus"
             options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureDirection: 'vertical' }}

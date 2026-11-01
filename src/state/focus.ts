@@ -10,17 +10,26 @@ export type FocusRecord = {
   plannedMs: number;
   completed: boolean;
   reflection?: Reflection;
+  label?: string;
 };
 
-export type ActiveFocus = { start: number; plannedMs: number; notificationId?: string | null };
+export type ActiveFocus = {
+  start: number;
+  plannedMs: number;
+  notificationId?: string | null;
+  /** What the session is for, e.g. a task step. */
+  label?: string;
+  taskId?: string;
+  stepId?: string;
+};
 
 const MAX_HISTORY = 300;
 
 export const focusHistory = createPersistedStore<FocusRecord[]>('focus.history.v1', []);
 export const activeFocus = createPersistedStore<ActiveFocus | null>('focus.active.v1', null);
 
-export function startFocus(plannedMs: number, notificationId?: string | null) {
-  activeFocus.set({ start: Date.now(), plannedMs, notificationId });
+export function startFocus(plannedMs: number, extras: Pick<ActiveFocus, 'label' | 'taskId' | 'stepId'> = {}) {
+  activeFocus.set({ start: Date.now(), plannedMs, ...extras });
 }
 
 /** Ends the running session. Returns the record that was saved. */
@@ -28,7 +37,7 @@ export function finishFocus(completed: boolean): FocusRecord | null {
   const active = activeFocus.get();
   if (!active) return null;
   const end = completed ? active.start + active.plannedMs : Date.now();
-  const record: FocusRecord = { start: active.start, end, plannedMs: active.plannedMs, completed };
+  const record: FocusRecord = { start: active.start, end, plannedMs: active.plannedMs, completed, label: active.label };
   focusHistory.set((prev) => [...prev, record].slice(-MAX_HISTORY));
   activeFocus.set(null);
   return record;

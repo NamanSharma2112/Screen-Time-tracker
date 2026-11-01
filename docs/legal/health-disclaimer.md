@@ -6,7 +6,7 @@ Helpful tools, not treatment.
 
 ## Wellbeing tools, not a medical device
 
-Screen Time Tracker includes features inspired by common ADHD and focus strategies — visual timers, brain dumps, gentle time checks and reflection. They are general self-help tools. They are not a medical device and do not diagnose, treat, cure or prevent ADHD or any other condition.
+Screen Time Tracker includes features inspired by common ADHD and focus strategies — visual timers, body doubling, task breakdown, brain dumps, a dopamine menu, daily check-ins, transition warnings, hyperfocus check-ins and reflection. They are general self-help tools. They are not a medical device and do not diagnose, treat, cure or prevent ADHD or any other condition.
 
 ## Talk to a professional
 

@@ -18,11 +18,15 @@ For reference, this is what the app reads or stores **on the device only**:
 | Device unlock times | Android Usage access | No, held in memory only | No |
 | Installed app names, icons and categories | PackageManager | No, held in memory only | No |
 | Preferences, focus history, reflections | User | Yes, app-private storage | No* |
-| Brain-dump notes | User | Yes, app-private storage | No* |
+| Brain-dump notes, tasks, check-ins, dopamine menu, up-next reminders | User | Yes, app-private storage | No* |
+| Recap image | Generated on device | Temporary file | Only if the user shares it via the Android share sheet (user-initiated; not collection by the developer) |
 
 \* If the user has Android device backup turned on, Android may include app-private storage in
 the user's own encrypted Google backup. Google treats this as the user's own backup, not
 collection by the developer.
+
+Release builds made with the `production` EAS profile (`NO_INTERNET=1`) **don't declare the
+`INTERNET` permission at all**, which backs up these answers technically.
 
 If you later add analytics, crash reporting (e.g. Sentry), sign-in or cloud sync, **you must
 update this form, the Privacy Policy (`src/legal/content.ts`) and the in-app disclosure**.

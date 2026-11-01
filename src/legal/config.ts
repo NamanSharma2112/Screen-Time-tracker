@@ -19,6 +19,11 @@ export const LEGAL = {
   version: 1,
   /** Minimum age for the Terms. Play target audience should be set to 13+ to match. */
   minimumAge: 13,
+  /**
+   * Whether the builds you publish are made with NO_INTERNET=1 (the default `production` EAS
+   * profile). Keep this in sync — the Privacy Policy makes a promise based on it.
+   */
+  releaseWithoutInternet: true,
 } as const;
 
 /** True while any placeholder above is still unfilled. Shown as a warning in development builds. */

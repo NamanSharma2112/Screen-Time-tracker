@@ -19,8 +19,8 @@ if (supported) {
 async function ensureChannel() {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync(CHANNEL, {
-    name: 'Focus sessions',
-    description: 'Lets you know when a focus session ends.',
+    name: 'Focus & reminders',
+    description: 'Focus session endings, up-next warnings and hyperfocus check-ins.',
     // eslint-disable-next-line import/namespace -- re-exported via `export *`; the lint resolver misses it
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 180, 120, 180],
@@ -59,6 +59,31 @@ export async function scheduleFocusEnd(at: number, minutes: number): Promise<str
     });
   } catch {
     return null;
+  }
+}
+
+/** Schedules a general reminder (transitions, nudges). Returns its id, or null when not allowed. */
+export async function scheduleReminder(at: number, title: string, body: string): Promise<string | null> {
+  if (!supported || !(await notificationsAllowed())) return null;
+  try {
+    await ensureChannel();
+    return await Notifications.scheduleNotificationAsync({
+      content: { title, body },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: new Date(at), channelId: CHANNEL },
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** Shows a notification right away (used by background checks). */
+export async function notifyNow(title: string, body: string): Promise<void> {
+  if (!supported || !(await notificationsAllowed())) return;
+  try {
+    await ensureChannel();
+    await Notifications.scheduleNotificationAsync({ content: { title, body }, trigger: null });
+  } catch {
+    // Best effort.
   }
 }
 

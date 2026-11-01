@@ -1,5 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -12,6 +12,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
+import { BodyDouble } from '@/components/BodyDouble';
 import { BrainDumpSheet } from '@/components/BrainDumpSheet';
 import { HoldButton, PrimaryButton } from '@/components/Buttons';
 import { DottedDial } from '@/components/DottedDial';
@@ -22,6 +23,7 @@ import { RollingText } from '@/components/RollingText';
 import { Screen } from '@/components/Screen';
 import { StatColumns } from '@/components/StatColumns';
 import { Card, Divider, SectionLabel, Sheet } from '@/components/Surfaces';
+import { Switch } from '@/components/Switch';
 import { Txt } from '@/components/Txt';
 import { haptics } from '@/lib/haptics';
 import { cancelNotification, requestNotifications, scheduleFocusEnd } from '@/lib/notifications';
@@ -37,6 +39,7 @@ import {
 } from '@/state/focus';
 import { notesStore } from '@/state/notes';
 import { useSettings } from '@/state/settings';
+import { taskProgress, tasksStore, toggleStep } from '@/state/tasks';
 import { springs, useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
@@ -51,14 +54,19 @@ const REFLECTIONS: { value: Reflection; label: string; icon: ComponentProps<type
 export default function FocusScreen() {
   const enter = useEntering();
   const { colors, accent } = useTheme();
-  const { settings } = useSettings();
+  const { settings, update } = useSettings();
   const toast = useToast();
+  // Opened from a task step or the dopamine menu: /focus?minutes=10&label=…&task=…&step=…
+  const params = useLocalSearchParams<{ minutes?: string; label?: string; task?: string; step?: string }>();
+  const paramMinutes = Number(params.minutes) || 0;
   const active = activeFocus.use();
   const history = focusHistory.use();
   const notes = notesStore.use();
   const stats = focusStats(history);
 
-  const [minutes, setMinutes] = useState(25);
+  const [minutes, setMinutes] = useState(paramMinutes || 25);
+  const lengths =
+    paramMinutes && !LENGTHS.includes(paramMinutes) ? [paramMinutes, ...LENGTHS].sort((a, b) => a - b) : LENGTHS;
   const [now, setNow] = useState(() => Date.now());
   const [justFinished, setJustFinished] = useState(false);
   const [reflected, setReflected] = useState<Reflection | null>(null);
@@ -79,6 +87,24 @@ export default function FocusScreen() {
       if (t >= end) {
         finishFocus(true);
         cancelNotification(active.notificationId);
+        if (active.taskId && active.stepId) {
+          toggleStep(active.taskId, active.stepId, true);
+          const task = tasksStore.get().find((x) => x.id === active.taskId);
+          if (task) {
+            const p = taskProgress(task);
+            toast({
+              title: p.next ? 'Step done' : 'Task complete!',
+              subtitle: p.next ? `${p.done} of ${p.total} — next: ${p.next.text}` : task.title,
+              icon: 'checkmark-done-circle',
+              tone: 'success',
+              haptic: 'success',
+            });
+            setJustFinished(true);
+            setReflected(null);
+            setCelebrate((c) => c + 1);
+            return;
+          }
+        }
         setJustFinished(true);
         setReflected(null);
         setCelebrate((c) => c + 1);
@@ -117,7 +143,7 @@ export default function FocusScreen() {
   const begin = async () => {
     setJustFinished(false);
     const plannedMs = minutes * MINUTE;
-    startFocus(plannedMs);
+    startFocus(plannedMs, { label: params.label, taskId: params.task, stepId: params.step });
     if (settings.focusReminders) {
       await requestNotifications();
       const id = await scheduleFocusEnd(Date.now() + plannedMs, minutes);
@@ -166,7 +192,7 @@ export default function FocusScreen() {
         }
       >
         <View style={styles.chips}>
-          {LENGTHS.map((m) => (
+          {lengths.map((m) => (
             <Chip
               key={m}
               label={`${m}m`}
@@ -179,6 +205,12 @@ export default function FocusScreen() {
             />
           ))}
         </View>
+
+        {(active?.label ?? params.label) ? (
+          <Txt variant="callout" weight="600" align="center" style={styles.label} numberOfLines={2}>
+            {active?.label ?? params.label}
+          </Txt>
+        ) : null}
 
         <Animated.View entering={enter(0)} style={styles.dialWrap}>
           <View>
@@ -201,13 +233,17 @@ export default function FocusScreen() {
               )}
             </DottedDial>
           </View>
-          <Txt variant="subhead" tone="secondary" align="center" style={styles.message}>
-            {state === 'running'
-              ? 'Stay with it — your phone can wait.\nThoughts popping up? Park them below.'
-              : state === 'done'
-                ? 'Lovely. Stretch, drink some water,\nthen decide what’s next.'
-                : 'Pick a length, then hold to begin.\nShort sessions count too.'}
-          </Txt>
+          {state === 'running' && settings.bodyDouble ? (
+            <BodyDouble sound={settings.ambientSound} />
+          ) : (
+            <Txt variant="subhead" tone="secondary" align="center" style={styles.message}>
+              {state === 'running'
+                ? 'Stay with it — your phone can wait.\nThoughts popping up? Park them below.'
+                : state === 'done'
+                  ? 'Lovely. Stretch, drink some water,\nthen decide what’s next.'
+                  : 'Pick a length, then hold to begin.\nShort sessions count too.'}
+            </Txt>
+          )}
         </Animated.View>
 
         <Sheet>
@@ -230,6 +266,33 @@ export default function FocusScreen() {
                   </Txt>
                 </Animated.View>
               ) : null}
+            </Animated.View>
+          ) : null}
+
+          {state !== 'running' ? (
+            <Animated.View entering={enter(1)} layout={LinearTransition.springify().duration(450).dampingRatio(1)}>
+              <Card>
+                <ListRowToggle
+                  icon="people-outline"
+                  title="Body double"
+                  detail="Screen stays on with a calm companion, like working next to a friend."
+                  value={settings.bodyDouble}
+                  onChange={(v) => update({ bodyDouble: v })}
+                />
+                {settings.bodyDouble ? (
+                  <View style={styles.soundRow}>
+                    {(['off', 'brown', 'pink'] as const).map((s) => (
+                      <Chip
+                        key={s}
+                        label={s === 'off' ? 'Silent' : s === 'brown' ? 'Brown noise' : 'Pink noise'}
+                        selected={settings.ambientSound === s}
+                        disabled={false}
+                        onPress={() => update({ ambientSound: s })}
+                      />
+                    ))}
+                  </View>
+                ) : null}
+              </Card>
             </Animated.View>
           ) : null}
 
@@ -294,6 +357,36 @@ export default function FocusScreen() {
   );
 }
 
+function ListRowToggle({
+  icon,
+  title,
+  detail,
+  value,
+  onChange,
+}: {
+  icon: ComponentProps<typeof Ionicons>['name'];
+  title: string;
+  detail: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  const { accent } = useTheme();
+  return (
+    <View style={styles.toggleRow}>
+      <Ionicons name={icon} size={22} color={accent} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Txt variant="callout" weight="600">
+          {title}
+        </Txt>
+        <Txt variant="footnote" tone="secondary">
+          {detail}
+        </Txt>
+      </View>
+      <Switch label={title} value={value} onChange={onChange} />
+    </View>
+  );
+}
+
 function Chip({
   label,
   selected,
@@ -321,7 +414,7 @@ function Chip({
       scaleTo={0.95}
       hitSlop={6}
       accessibilityRole="radio"
-      accessibilityLabel={label.replace('m', ' minutes')}
+      accessibilityLabel={/^\d+m$/.test(label) ? label.replace('m', ' minutes') : label}
       accessibilityState={{ checked: selected, disabled }}
     >
       <Animated.View style={[styles.chip, { opacity: disabled && !selected ? 0.4 : 1 }, style]}>
@@ -372,6 +465,9 @@ function ReflectTile({
 
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', justifyContent: 'center', gap: 8, paddingHorizontal: 20 },
+  label: { paddingHorizontal: 40, marginTop: 16, marginBottom: -8 },
+  soundRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingBottom: 16, flexWrap: 'wrap' },
+  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 16 },
   chip: {
     minWidth: 52,
     alignItems: 'center',

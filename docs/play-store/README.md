@@ -76,8 +76,16 @@ Regenerate the icon and graphics with `node scripts/generate-assets.mjs`.
   app. Keep that screen whenever you change the flow.
 - **Package visibility.** The app declares `<queries>` for launcher apps only. It doesn't use
   `QUERY_ALL_PACKAGES`, which would need a separate declaration.
-- **Notifications.** These are local only (focus session ends). No Firebase or push services are
-  used.
+- **Notifications.** These are local only (focus endings, up-next heads-ups, hyperfocus
+  check-ins). No Firebase or push services are used.
+- **No internet.** The `production` and `preview` profiles build with `NO_INTERNET=1`, which
+  removes the `INTERNET` permission. Use `--profile production-online` if you ever add a network
+  feature, and set `releaseWithoutInternet: false` in `src/legal/config.ts`.
+- **Background work.** The hyperfocus check-in uses WorkManager via `expo-background-task`. It's a
+  periodic job, not a foreground service, so it doesn't need a foreground-service declaration.
+  During closed testing, check the Play Console's pre-launch report and permission summary for
+  any surprises from library manifests.
+- **Widget.** This is a standard `AppWidgetProvider`, which needs no special declaration.
 - **Target API.** Expo SDK 58 targets API 36, which meets the 2026 requirement for new apps and
   updates.
 - **Wording.** Describe the app as ADHD-*friendly* or "designed with ADHD in mind". Don't say it

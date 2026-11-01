@@ -6,7 +6,7 @@ export type LegalSection = { heading: string; body: string[]; bullets?: string[]
 export type LegalDoc = { id: LegalDocId; title: string; summary: string; sections: LegalSection[] };
 export type LegalDocId = 'privacy' | 'terms' | 'health';
 
-const { appName, developerName, contactEmail, jurisdiction, effectiveDate, minimumAge } = LEGAL;
+const { appName, developerName, contactEmail, jurisdiction, effectiveDate, minimumAge, releaseWithoutInternet } = LEGAL;
 
 export const PRIVACY: LegalDoc = {
   id: 'privacy',
@@ -25,6 +25,11 @@ export const PRIVACY: LegalDoc = {
       bullets: [
         'Everything the app shows is computed on your device.',
         'Nothing is sent to us or to anyone else. The app has no backend, user accounts, analytics, advertising or crash-reporting SDKs.',
+        ...(releaseWithoutInternet
+          ? [
+              'The version published on Google Play does not even request Android’s Internet permission, so it is technically unable to send data off your phone.',
+            ]
+          : []),
         'You can delete everything the app stores at any time from Preferences › Delete all data, or by uninstalling the app.',
       ],
     },
@@ -41,6 +46,7 @@ export const PRIVACY: LegalDoc = {
       heading: 'How that information is used and stored',
       body: [
         'Usage information is read from Android when you open the app and is kept only in the app’s memory while it is running. It is not copied to storage, not uploaded, and not shared.',
+        'If you turn on the hyperfocus check-in, Android periodically (about every 15 minutes) lets the app read your most recent usage in the background, on the device, to see whether one app has held your attention for longer than the time you chose. Nothing is stored except a marker that prevents repeat nudges for the same stretch.',
         'You can withdraw access at any time in Android Settings › Apps › Special app access › Usage access. The app then shows sample data instead.',
       ],
     },
@@ -51,6 +57,7 @@ export const PRIVACY: LegalDoc = {
         'Your preferences (theme, colour, daily goal, display options).',
         'Focus sessions you run (start time, length, whether completed) and your reflections on them.',
         'Notes you type into Brain Dump.',
+        'Tasks and steps you create, your daily check-ins (energy, mood, focus), your dopamine-menu ideas and the “up next” reminders you set.',
         'Which version of these terms you accepted.',
       ],
     },
@@ -62,7 +69,17 @@ export const PRIVACY: LegalDoc = {
         'Notifications (POST_NOTIFICATIONS) — optional; tells you when a focus session ends.',
         'Run at startup (RECEIVE_BOOT_COMPLETED) — keeps a scheduled focus reminder after your phone restarts.',
         'Vibration (VIBRATE) — haptic feedback, which you can turn off in Preferences.',
+        'Audio settings (MODIFY_AUDIO_SETTINGS) — declared by the audio library used for body-double ambient sound. The app plays sound only while you are in a focus session and does not change your system audio settings.',
+        'Background work and network state (ACCESS_NETWORK_STATE) — used by Android’s job scheduler to run the optional hyperfocus check-in. Network state only reports whether the phone is online; it cannot send data.',
         'Visibility of launchable apps — so the app can show the names and icons of apps you use. It does not request access to all installed packages.',
+      ],
+    },
+    {
+      heading: 'Things only you can see — and choose to share',
+      body: [],
+      bullets: [
+        'If you add the home-screen widget, it shows today’s screen time on your home screen, where anyone who can see your phone can read it.',
+        'If you share a weekly recap, the image is created on your device and sent only to the app or person you pick. What happens next is governed by their policies.',
       ],
     },
     {
@@ -209,7 +226,7 @@ export const HEALTH: LegalDoc = {
     {
       heading: 'Wellbeing tools, not a medical device',
       body: [
-        `${appName} includes features inspired by common ADHD and focus strategies — visual timers, brain dumps, gentle time checks and reflection. They are general self-help tools. They are not a medical device and do not diagnose, treat, cure or prevent ADHD or any other condition.`,
+        `${appName} includes features inspired by common ADHD and focus strategies — visual timers, body doubling, task breakdown, brain dumps, a dopamine menu, daily check-ins, transition warnings, hyperfocus check-ins and reflection. They are general self-help tools. They are not a medical device and do not diagnose, treat, cure or prevent ADHD or any other condition.`,
       ],
     },
     {

@@ -26,15 +26,24 @@ WEEKLY ANALYTICS
 • A session timeline for every day
 • An hour-by-hour pattern of when you reach for your phone
 
-FOCUS, GENTLY
+FOCUS, GENTLY — DESIGNED WITH ADHD IN MIND
 • Visual focus timer — 5 to 60 minutes, hold to start
+• Body double mode: a calm companion and ambient noise keep you company
+• Break down big tasks into tiny steps, each with its own short timer
 • Time checks: a soft tap every few minutes to help with time blindness
 • Brain dump: park a distracting thought in two taps and get back to work
-• A quick reflection after each session to learn what helps you
+• Dopamine menu: let the app pick something better than scrolling
+• Up next: a heads-up before your next thing, so switching is easier
+• Hyperfocus check-ins when one app has held you for too long
+• Daily check-ins that show how screen time and mood line up
 • Streaks that don't punish you, and copy that never shames
 
+AT A GLANCE
+• Home-screen widget with today's dial
+• Shareable weekly recap card
+
 PRIVATE BY DESIGN
-• Everything is calculated on your phone
+• Everything is calculated on your phone — the app doesn't even have internet access
 • No accounts, no ads, no analytics, no trackers
 • Delete everything in one tap
 

@@ -25,6 +25,13 @@ export type Settings = {
   timeCheckMinutes: 0 | 5 | 10 | 15;
   /** Notify when a focus session ends while the app is in the background. */
   focusReminders: boolean;
+  /** Nudge after this many minutes of continuous use of one app (0 = off). */
+  hyperfocusMinutes: 0 | 30 | 45 | 60 | 90;
+  /** Which apps count for the hyperfocus nudge. */
+  hyperfocusScope: 'distracting' | 'all';
+  /** Body-double mode during focus: screen stays on with a calm companion. */
+  bodyDouble: boolean;
+  ambientSound: 'off' | 'brown' | 'pink';
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -39,6 +46,10 @@ export const DEFAULT_SETTINGS: Settings = {
   haptics: true,
   timeCheckMinutes: 10,
   focusReminders: true,
+  hyperfocusMinutes: 45,
+  hyperfocusScope: 'distracting',
+  bodyDouble: false,
+  ambientSound: 'brown',
 };
 
 const STORAGE_KEY = 'settings.v1';

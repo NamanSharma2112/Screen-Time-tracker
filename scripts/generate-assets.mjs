@@ -77,6 +77,22 @@ const ASSETS = [
     svg(96, 96, dial({ cx: 48, cy: 48, r: 26, count: 24, width: 0.09, dim: 0.5, core: false })),
   ],
   ['assets/favicon.png', 48, 48, svg(48, 48, bg(48, 48) + dial({ cx: 24, cy: 24, r: 12, count: 20, width: 0.1 }))],
+  // Shown in the launcher's widget picker.
+  [
+    'assets/widget-preview.png',
+    360,
+    360,
+    svg(
+      360,
+      360,
+      `<rect x="6" y="6" width="348" height="348" rx="44" fill="#FFFFFF"/>` +
+        dial({ cx: 180, cy: 172, r: 92, color: ACCENT_B, dim: 0.18, core: false }) +
+        `<circle cx="180" cy="172" r="66" fill="${ACCENT_B}" fill-opacity="0.1"/>` +
+        `<text x="180" y="168" text-anchor="middle" font-family="Inter, Roboto, sans-serif" font-size="40" font-weight="700" fill="#0B0B0F">3h 12m</text>` +
+        `<text x="180" y="196" text-anchor="middle" font-family="Inter, Roboto, sans-serif" font-size="17" fill="#6E6E76">of 4h goal</text>` +
+        `<text x="180" y="318" text-anchor="middle" font-family="Inter, Roboto, sans-serif" font-size="17" font-weight="600" fill="#6E6E76">Today · 42 pickups</text>`,
+    ),
+  ],
   // Play Store listing.
   ['docs/play-store/icon-512.png', 512, 512, svg(512, 512, bg(512, 512) + dial({ cx: 256, cy: 256, r: 135 }))],
   [

@@ -7,6 +7,7 @@ import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withSprin
 
 import { PrimaryButton } from '@/components/Buttons';
 import { ConfirmSheet } from '@/components/ConfirmSheet';
+import { useToast } from '@/components/IslandToast';
 import { ListRow } from '@/components/ListRow';
 import { OptionSheet, type Option } from '@/components/OptionSheet';
 import { PressableScale } from '@/components/PressableScale';
@@ -22,8 +23,17 @@ import { useUsage } from '@/state/usage';
 import { ACCENTS } from '@/theme/colors';
 import { useEntering, springs } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
+import { pinWidget, widgetsAvailable } from '@/widget';
 
-type PickerKey = 'dailyGoalMinutes' | 'timeFormat' | 'weekStart' | 'fontSize' | 'dataSource' | 'timeCheckMinutes';
+type PickerKey =
+  | 'dailyGoalMinutes'
+  | 'timeFormat'
+  | 'weekStart'
+  | 'fontSize'
+  | 'dataSource'
+  | 'timeCheckMinutes'
+  | 'hyperfocusMinutes'
+  | 'hyperfocusScope';
 
 const PICKERS: { [K in PickerKey]: { title: string; options: Option<Settings[K]>[] } } = {
   dailyGoalMinutes: {
@@ -50,6 +60,23 @@ const PICKERS: { [K in PickerKey]: { title: string; options: Option<Settings[K]>
       { value: 'small', label: 'Small' },
       { value: 'medium', label: 'Medium' },
       { value: 'large', label: 'Large' },
+    ],
+  },
+  hyperfocusMinutes: {
+    title: 'Hyperfocus check-in',
+    options: [
+      { value: 0, label: 'Off' },
+      { value: 30, label: 'After 30 minutes' },
+      { value: 45, label: 'After 45 minutes', detail: 'Recommended' },
+      { value: 60, label: 'After 1 hour' },
+      { value: 90, label: 'After 1½ hours' },
+    ],
+  },
+  hyperfocusScope: {
+    title: 'Check in on',
+    options: [
+      { value: 'distracting', label: 'Social & entertainment apps', detail: 'Leaves work apps alone' },
+      { value: 'all', label: 'All apps' },
     ],
   },
   timeCheckMinutes: {
@@ -121,6 +148,9 @@ function SettingsContent({
 
   const pk = PICKERS[lastPicker] as { title: string; options: Option<string | number>[] };
   const version = Constants.expoConfig?.version ?? '1.0.0';
+  // Release builds made with NO_INTERNET=1 have no INTERNET permission at all (see app.config.ts).
+  const offline = Constants.expoConfig?.extra?.noInternet === true;
+  const toast = useToast();
 
   return (
     <>
@@ -190,6 +220,57 @@ function SettingsContent({
             </Card>
           </Animated.View>
 
+          <SectionLabel>Nudges</SectionLabel>
+          <Card>
+            <ListRow
+              icon="hourglass-outline"
+              label="Hyperfocus check-in"
+              value={draft.hyperfocusMinutes ? `${draft.hyperfocusMinutes} min` : 'Off'}
+              onPress={() => open('hyperfocusMinutes')}
+            />
+            {draft.hyperfocusMinutes ? (
+              <>
+                <Divider inset={48} />
+                <ListRow
+                  icon="apps-outline"
+                  label="Applies to"
+                  value={draft.hyperfocusScope === 'all' ? 'All apps' : 'Social & fun'}
+                  onPress={() => open('hyperfocusScope')}
+                />
+              </>
+            ) : null}
+            {widgetsAvailable ? (
+              <>
+                <Divider inset={48} />
+                <ListRow
+                  icon="grid-outline"
+                  label="Add widget to home screen"
+                  onPress={async () => {
+                    const ok = await pinWidget();
+                    toast(
+                      ok
+                        ? {
+                            title: 'Check your home screen',
+                            subtitle: 'Confirm to add the widget',
+                            icon: 'grid-outline',
+                          }
+                        : {
+                            title: 'Add it from your launcher',
+                            subtitle: 'Long-press the home screen › Widgets',
+                            icon: 'grid-outline',
+                            tone: 'neutral',
+                          },
+                    );
+                  }}
+                />
+              </>
+            ) : null}
+          </Card>
+          <Txt variant="footnote" tone="tertiary" style={styles.footnote}>
+            A gentle, one-time nudge when a single app has held you for a while. Android runs this check roughly every
+            15 minutes, so it may arrive a little late.
+          </Txt>
+
           <Animated.View entering={enter(6)}>
             <SectionLabel>Display & feel</SectionLabel>
           </Animated.View>
@@ -257,6 +338,12 @@ function SettingsContent({
 
           <SectionLabel>About</SectionLabel>
           <Card>
+            {offline ? (
+              <>
+                <ListRow icon="cloud-offline-outline" label="Offline by design" value="No internet access" />
+                <Divider inset={48} />
+              </>
+            ) : null}
             <ListRow icon="shield-checkmark-outline" label="Privacy Policy" onPress={() => openDoc('privacy')} />
             <Divider inset={48} />
             <ListRow icon="document-text-outline" label="Terms of Use" onPress={() => openDoc('terms')} />

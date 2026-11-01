@@ -1,12 +1,13 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { AppUsageRow } from '@/components/AppUsageRow';
 import { StackedLine } from '@/components/Bars';
 import { BrainDumpSheet } from '@/components/BrainDumpSheet';
+import { CheckInCard } from '@/components/CheckInCard';
 import { PrimaryButton } from '@/components/Buttons';
 import { DataNotice } from '@/components/DataNotice';
 import { DottedDial } from '@/components/DottedDial';
@@ -18,6 +19,7 @@ import { StatColumns } from '@/components/StatColumns';
 import { Badge, Card, Divider, SectionLabel, Sheet } from '@/components/Surfaces';
 import { SwipeDays } from '@/components/SwipeDays';
 import { Txt } from '@/components/Txt';
+import { UpNextCard } from '@/components/UpNextCard';
 import { WeekStrip } from '@/components/WeekStrip';
 import { CATEGORIES } from '@/data/categories';
 import { haptics } from '@/lib/haptics';
@@ -25,19 +27,22 @@ import { dayTitle, formatClock, formatDuration, MINUTE, parseKey, splitDuration,
 import { focusHistory, focusStats } from '@/state/focus';
 import { notesStore } from '@/state/notes';
 import { useSettings } from '@/state/settings';
+import { tasksStore } from '@/state/tasks';
 import { useDays, useUsage } from '@/state/usage';
 import { useEntering } from '@/theme/motion';
+import { refreshWidgets } from '@/widget';
 import { useTheme } from '@/theme/useTheme';
 
 export default function TodayScreen() {
   const enter = useEntering();
   const { settings } = useSettings();
-  const { colors, accent } = useTheme();
+  const { colors, accent, accentSoft } = useTheme();
   const { apps, source, refresh } = useUsage();
   const [refreshing, setRefreshing] = useState(false);
   const [dumpOpen, setDumpOpen] = useState(false);
   const focus = focusStats(focusHistory.use());
   const parked = notesStore.use().filter((n) => !n.done).length;
+  const openSteps = tasksStore.use().reduce((n, t) => n + t.steps.filter((s) => !s.done).length, 0);
 
   const today = todayKey();
   const week = useMemo(() => weekKeys(parseKey(today), settings.weekStart), [settings.weekStart, today]);
@@ -50,6 +55,12 @@ export default function TodayScreen() {
   const total = day?.totalMs ?? 0;
   const shown = splitDuration(total);
   const isToday = selected === today;
+
+  // Keep the home-screen widget in step with what the app shows.
+  const todayTotal = days[week.indexOf(today)]?.totalMs;
+  useEffect(() => {
+    if (todayTotal != null) refreshWidgets();
+  }, [todayTotal, settings.accent, settings.dailyGoalMinutes, settings.theme]);
 
   const top = day?.apps.slice(0, 5) ?? [];
   const topMs = top[0]?.ms ?? 1;
@@ -114,6 +125,28 @@ export default function TodayScreen() {
 
         <Sheet>
           <DataNotice />
+
+          {isToday && total > goalMs ? (
+            <Animated.View entering={enter(2)}>
+              <PressableScale
+                onPress={() => router.push('/menu')}
+                scaleTo={0.98}
+                style={[styles.nudge, { backgroundColor: accentSoft }]}
+                accessibilityRole="button"
+              >
+                <Ionicons name="sparkles" size={20} color={accent} />
+                <View style={{ flex: 1 }}>
+                  <Txt variant="callout" weight="600">
+                    Craving another scroll?
+                  </Txt>
+                  <Txt variant="footnote" tone="secondary">
+                    Let your dopamine menu pick something better.
+                  </Txt>
+                </View>
+                <Ionicons name="chevron-forward" size={16} color={accent} />
+              </PressableScale>
+            </Animated.View>
+          ) : null}
 
           <Animated.View entering={enter(2)}>
             <Card>
@@ -187,10 +220,32 @@ export default function TodayScreen() {
             </Card>
           </Animated.View>
 
-          <Animated.View entering={enter(6)}>
-            <SectionLabel>Focus</SectionLabel>
+          {isToday ? (
+            <>
+              <Animated.View entering={enter(6)}>
+                <SectionLabel>Up next</SectionLabel>
+              </Animated.View>
+              <Animated.View entering={enter(6)}>
+                <UpNextCard />
+              </Animated.View>
+            </>
+          ) : null}
+
+          {selected <= today ? (
+            <>
+              <Animated.View entering={enter(7)}>
+                <SectionLabel>{isToday ? 'How are you today?' : `How you felt · ${dayTitle(selected)}`}</SectionLabel>
+              </Animated.View>
+              <Animated.View entering={enter(7)}>
+                <CheckInCard day={selected} />
+              </Animated.View>
+            </>
+          ) : null}
+
+          <Animated.View entering={enter(8)}>
+            <SectionLabel>Toolkit</SectionLabel>
           </Animated.View>
-          <Animated.View entering={enter(7)}>
+          <Animated.View entering={enter(8)}>
             <Card>
               <ListRow
                 icon="timer-outline"
@@ -216,6 +271,17 @@ export default function TodayScreen() {
                   </PressableScale>
                 }
               />
+              <Divider inset={48} />
+              <ListRow
+                icon="list-outline"
+                label="Tasks"
+                value={openSteps ? `${openSteps} step${openSteps === 1 ? '' : 's'} to go` : undefined}
+                onPress={() => router.push('/tasks')}
+              />
+              <Divider inset={48} />
+              <ListRow icon="sparkles-outline" label="Dopamine menu" onPress={() => router.push('/menu')} />
+              <Divider inset={48} />
+              <ListRow icon="share-outline" label="Weekly recap" onPress={() => router.push('/recap')} />
             </Card>
           </Animated.View>
         </Sheet>
@@ -243,4 +309,5 @@ const styles = StyleSheet.create({
   message: { marginTop: 16, paddingHorizontal: 40 },
   stackPad: { paddingHorizontal: 16, paddingBottom: 16 },
   empty: { padding: 24 },
+  nudge: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 22 },
 });
