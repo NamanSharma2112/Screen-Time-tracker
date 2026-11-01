@@ -16,13 +16,22 @@ export const widgetsAvailable =
   Platform.OS === 'android' && !isRunningInExpoGo() && TurboModuleRegistry.get('AndroidWidget') != null;
 
 function lib(): WidgetLib | null {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  return widgetsAvailable ? (require('react-native-android-widget') as WidgetLib) : null;
+  if (!widgetsAvailable) return null;
+  // A require inside try/catch is an *optional* dependency for Metro: if the package isn't
+  // installed, bundling still succeeds and widgets are simply unavailable.
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require('react-native-android-widget') as WidgetLib;
+  } catch {
+    return null;
+  }
 }
 
-async function render(width: number, height: number) {
+async function render(ui: WidgetLib, width: number, height: number) {
   const { data, theme } = await loadWidgetData();
-  const view = (scheme: 'light' | 'dark') => <TodayWidget data={data} width={width} height={height} scheme={scheme} />;
+  const view = (scheme: 'light' | 'dark') => (
+    <TodayWidget data={data} width={width} height={height} scheme={scheme} ui={ui} />
+  );
   if (theme === 'system') return { light: view('light'), dark: view('dark') };
   return view(theme);
 }
@@ -32,7 +41,10 @@ export async function refreshWidgets() {
   const w = lib();
   if (!w) return;
   try {
-    await w.requestWidgetUpdate({ widgetName: WIDGET_NAME, renderWidget: (info) => render(info.width, info.height) });
+    await w.requestWidgetUpdate({
+      widgetName: WIDGET_NAME,
+      renderWidget: (info) => render(w, info.width, info.height),
+    });
   } catch {
     // Widgets are a nice-to-have; never let them break the app.
   }
@@ -56,7 +68,7 @@ export function registerWidgets() {
   w.registerWidgetTaskHandler(async ({ widgetInfo, widgetAction, renderWidget }) => {
     if (widgetAction === 'WIDGET_DELETED' || widgetAction === 'WIDGET_CLICK') return;
     try {
-      renderWidget(await render(widgetInfo.width, widgetInfo.height));
+      renderWidget(await render(w, widgetInfo.width, widgetInfo.height));
     } catch {
       // Leave the previous rendering in place.
     }
