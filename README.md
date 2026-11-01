@@ -67,8 +67,12 @@ The motion follows Apple's HIG and the animations.dev craft guidelines (`src/the
 
 ```bash
 npm install
-npx expo start            # Expo Go / web — runs on realistic sample data
+npm run go                # starts Metro for Expo Go — scan the QR with the Expo Go app
 ```
+
+Expo Go runs the full UI on realistic sample data. (Because `expo-dev-client` is installed, plain
+`npx expo start` targets development builds; `npm run go` forces Expo Go. If your phone and computer
+aren't on the same Wi‑Fi, use `npx expo start --go --tunnel`.)
 
 ### Real usage data (Android)
 
