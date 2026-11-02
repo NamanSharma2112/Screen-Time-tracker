@@ -13,7 +13,17 @@ See where your time goes — without judgement.
 
 Screen Time Tracker turns your phone usage into a calm, beautiful daily picture, and gives you gentle tools to focus. Designed with ADHD brains in mind.
 
-TODAY AT A GLANCE
+TODAY MEET YOUR FOCUS BUDDY
+• A little hamster that keeps you company while you focus
+• It catches a cookie at every quarter of a session and cheers when you finish
+• It lives on your Today screen too — hungry for a cookie, never sad
+
+MEET YOUR FOCUS BUDDY
+• A little hamster that keeps you company while you focus
+• It catches a cookie at every quarter of a session and cheers when you finish
+• It lives on your Today screen too — hungry for a cookie, never sad
+
+AT A GLANCE
 • A daily dial that fills toward the goal you set
 • Week rings to compare days at a glance — swipe between days
 • Time per category: productivity, social, entertainment
@@ -27,7 +37,7 @@ WEEKLY ANALYTICS
 • An hour-by-hour pattern of when you reach for your phone
 
 FOCUS, GENTLY — DESIGNED WITH ADHD IN MIND
-• Visual focus timer — 5 to 60 minutes, hold to start
+• Focus timer — 5 to 60 minutes, tap to start
 • Body double mode: a calm companion and ambient noise keep you company
 • Break down big tasks into tiny steps, each with its own short timer
 • Time checks: a soft tap every few minutes to help with time blindness
@@ -39,7 +49,7 @@ FOCUS, GENTLY — DESIGNED WITH ADHD IN MIND
 • Streaks that don't punish you, and copy that never shames
 
 AT A GLANCE
-• Home-screen widget: today's dial at a glance
+• Home-screen widgets: today's dial, and your focus buddy with today's cookies
 • Shareable weekly recap card
 
 PRIVATE BY DESIGN

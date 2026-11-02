@@ -2,9 +2,11 @@ import { isRunningInExpoGo } from 'expo';
 import { Platform, TurboModuleRegistry } from 'react-native';
 
 import { TodayWidget } from './TodayWidget';
-import { loadWidgetData } from './data';
+import { BuddyWidget } from './BuddyWidget';
+import { loadBuddyData, loadWidgetData } from './data';
 
 export const WIDGET_NAME = 'TodayDial';
+export const BUDDY_WIDGET_NAME = 'FocusBuddy';
 
 type WidgetLib = typeof import('react-native-android-widget');
 
@@ -27,7 +29,14 @@ function lib(): WidgetLib | null {
   }
 }
 
-async function render(ui: WidgetLib, width: number, height: number) {
+async function render(ui: WidgetLib, name: string, width: number, height: number) {
+  if (name === BUDDY_WIDGET_NAME) {
+    const { cookies, theme } = await loadBuddyData();
+    const view = (scheme: 'light' | 'dark') => (
+      <BuddyWidget cookies={cookies} width={width} height={height} scheme={scheme} ui={ui} />
+    );
+    return theme === 'system' ? { light: view('light'), dark: view('dark') } : view(theme);
+  }
   const { data, theme } = await loadWidgetData();
   const view = (scheme: 'light' | 'dark') => (
     <TodayWidget data={data} width={width} height={height} scheme={scheme} ui={ui} />
@@ -39,13 +48,15 @@ async function render(ui: WidgetLib, width: number, height: number) {
 export async function refreshWidgets() {
   const w = lib();
   if (!w) return;
-  try {
-    await w.requestWidgetUpdate({
-      widgetName: WIDGET_NAME,
-      renderWidget: (info) => render(w, info.width, info.height),
-    });
-  } catch {
-    // Widgets are a nice-to-have; never let them break the app.
+  for (const name of [WIDGET_NAME, BUDDY_WIDGET_NAME]) {
+    try {
+      await w.requestWidgetUpdate({
+        widgetName: name,
+        renderWidget: (info) => render(w, name, info.width, info.height),
+      });
+    } catch {
+      // Widgets are a nice-to-have; never let them break the app.
+    }
   }
 }
 
@@ -67,7 +78,7 @@ export function registerWidgets() {
   w.registerWidgetTaskHandler(async ({ widgetInfo, widgetAction, renderWidget }) => {
     if (widgetAction === 'WIDGET_DELETED' || widgetAction === 'WIDGET_CLICK') return;
     try {
-      renderWidget(await render(w, widgetInfo.width, widgetInfo.height));
+      renderWidget(await render(w, widgetInfo.widgetName, widgetInfo.width, widgetInfo.height));
     } catch {
       // Leave the previous rendering in place.
     }

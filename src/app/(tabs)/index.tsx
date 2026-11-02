@@ -5,6 +5,7 @@ import { RefreshControl, StyleSheet, View } from 'react-native';
 
 import { AppUsageRow } from '@/components/AppUsageRow';
 import { StackedLine } from '@/components/Bars';
+import { BuddyCard } from '@/components/BuddyCard';
 import { DataNotice } from '@/components/DataNotice';
 import { DottedDial } from '@/components/DottedDial';
 import { PressableScale } from '@/components/PressableScale';
@@ -118,6 +119,8 @@ export default function TodayScreen() {
 
             <Sheet>
               <DataNotice />
+
+              <BuddyCard />
 
               {isToday && total > goalMs ? (
                 <View>

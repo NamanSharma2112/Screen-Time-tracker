@@ -73,6 +73,20 @@
               "resizeMode": "horizontal|vertical",
               "previewImage": "./assets/widget-preview.png",
               "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "FocusBuddy",
+              "label": "Focus buddy",
+              "description": "Your hamster, fed by today's focus sessions",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 2,
+              "maxResizeWidth": "320dp",
+              "maxResizeHeight": "320dp",
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/buddy-widget-preview.png",
+              "updatePeriodMillis": 1800000
             }
           ]
         }

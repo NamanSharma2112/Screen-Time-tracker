@@ -35,6 +35,7 @@ import { useSettings } from '@/state/settings';
 import { taskProgress, tasksStore, toggleStep } from '@/state/tasks';
 
 import { useTheme } from '@/theme/useTheme';
+import { refreshWidgets } from '@/widget';
 
 const LENGTHS = [5, 15, 25, 45, 60];
 
@@ -84,6 +85,7 @@ export default function FocusScreen() {
       const end = active.start + active.plannedMs;
       if (t >= end) {
         finishFocus(true);
+        refreshWidgets();
         cancelNotification(active.notificationId);
         if (active.taskId && active.stepId) {
           toggleStep(active.taskId, active.stepId, true);
@@ -174,6 +176,7 @@ export default function FocusScreen() {
   const endEarly = () => {
     const id = active?.notificationId;
     const record = finishFocus(false);
+    refreshWidgets();
     cancelNotification(id);
     const mins = record ? Math.round((record.end - record.start) / MINUTE) : 0;
     // Shame-free: any focused time counts.

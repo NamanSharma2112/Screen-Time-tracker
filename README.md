@@ -59,7 +59,11 @@ The app has three tabs, so everything is one tap away:
 - **Hyperfocus check‑in**: a background check about every 15 minutes, sending one gentle nudge
   when a single app has held you past your threshold. It can cover social/entertainment apps only,
   or all apps.
-- **Home‑screen widget**: today's dial and total. Add it from Preferences or from the launcher.
+- **Buddy on Today**: the same hamster lives in a card on Today, fed by today's focus sessions (a
+  cookie per quarter of a session, four for finishing one). With no cookies yet it looks hopeful,
+  never sad, and tapping it opens Focus.
+- **Home‑screen widgets**: today's dial and total, and the focus buddy with today's cookies (tap it
+  to start focusing). Add them from Preferences or from the launcher.
 - **Weekly recap**: a story‑sized card you can share as an image.
 - **Onboarding**: welcome, then privacy promise and consent to the Terms, then the Usage access
   *prominent disclosure* that Google Play requires, then notifications.

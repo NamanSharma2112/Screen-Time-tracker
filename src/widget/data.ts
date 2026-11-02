@@ -2,7 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { buildDay } from '@/data/aggregate';
 import { deviceSource, hasUsagePermission } from '@/data/device';
-import { addDays, MINUTE, startOfDay, todayKey } from '@/lib/time';
+import { cookiesOn } from '@/buddy/cookies';
+import { addDays, dateKey, MINUTE, startOfDay, todayKey } from '@/lib/time';
 import { DEFAULT_SETTINGS, type Settings } from '@/state/settings';
 
 import type { WidgetData } from './TodayWidget';
@@ -15,6 +16,20 @@ export async function readSettings(): Promise<Settings> {
   } catch {
     return DEFAULT_SETTINGS;
   }
+}
+
+/** Today's cookies for the buddy widget, from saved focus sessions (no usage access needed). */
+export async function loadBuddyData(): Promise<{ cookies: number; theme: Settings['theme'] }> {
+  const settings = await readSettings();
+  let cookies = 0;
+  try {
+    const raw = await AsyncStorage.getItem('focus.history.v1');
+    const today = todayKey();
+    cookies = cookiesOn(raw ? JSON.parse(raw) : [], (t) => dateKey(new Date(t)) === today);
+  } catch {
+    // Show a hungry buddy rather than nothing.
+  }
+  return { cookies, theme: settings.theme };
 }
 
 export async function loadWidgetData(): Promise<{ data: WidgetData; theme: Settings['theme'] }> {

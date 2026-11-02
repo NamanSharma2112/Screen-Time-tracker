@@ -78,7 +78,7 @@ export const PRIVACY: LegalDoc = {
       heading: 'Things only you can see — and choose to share',
       body: [],
       bullets: [
-        'If you add the home-screen widget, it shows today’s screen time on your home screen, where anyone who can see your phone can see them.',
+        'If you add the home-screen widgets, they show today’s screen time and how many focus cookies you earned today on your home screen, where anyone who can see your phone can see them.',
         'If you share a weekly recap, the image is created on your device and sent only to the app or person you pick. What happens next is governed by their policies.',
       ],
     },

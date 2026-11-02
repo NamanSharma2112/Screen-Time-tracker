@@ -240,3 +240,15 @@ export function moodFor(progress: number): Mood {
   if (progress >= 0.25) return 'content';
   return 'neutral';
 }
+
+/** A layer without its <svg>/<defs> wrapper, so layers can be stacked in one document. */
+const inner = (layer: string) => layer.replace(/^<svg[^>]*><defs>[\s\S]*?<\/defs>/, '').replace(/<\/svg>$/, '');
+
+/**
+ * The whole hamster as one still SVG (for the home-screen widget and store graphics, where nothing
+ * can move). Same layer order as the live component.
+ */
+export function buddySvg(mood: Mood, size = 200) {
+  const layers = [EAR_L, EAR_R, BODY, PAWS, eyes(mood), face(mood)].filter((l): l is string => !!l);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 200 200"><defs>${DEFS}</defs>${layers.map(inner).join('')}</svg>`;
+}
