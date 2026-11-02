@@ -32,6 +32,8 @@ export type Settings = {
   /** Body-double mode during focus: screen stays on with a calm companion. */
   bodyDouble: boolean;
   ambientSound: 'off' | 'brown' | 'pink';
+  /** Show the animated hamster on the focus screen (instead of the dotted dial). */
+  focusBuddy: boolean;
 };
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -50,6 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
   hyperfocusScope: 'distracting',
   bodyDouble: false,
   ambientSound: 'brown',
+  focusBuddy: true,
 };
 
 const STORAGE_KEY = 'settings.v1';

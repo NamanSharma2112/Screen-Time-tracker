@@ -3,6 +3,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
 
+import { moodFor } from '@/buddy/art';
+import { FocusBuddy } from '@/buddy/FocusBuddy';
 import { BodyDouble } from '@/components/BodyDouble';
 import { BrainDumpSheet } from '@/components/BrainDumpSheet';
 import { HoldButton, PrimaryButton } from '@/components/Buttons';
@@ -135,6 +137,11 @@ export default function FocusScreen() {
   const state = active ? 'running' : justFinished ? 'done' : 'idle';
   const remaining = active ? Math.max(0, active.start + active.plannedMs - now) : minutes * MINUTE;
   const progress = active ? Math.min(1, (now - active.start) / active.plannedMs) : justFinished ? 1 : 0;
+  // The session that just finished (not whatever length is selected now).
+  const lastRecord = history[history.length - 1];
+  const doneMs = justFinished && lastRecord ? lastRecord.end - lastRecord.start : minutes * MINUTE;
+  // A cookie for each quarter reached while running (the finish is its own celebration).
+  const cookies = state === 'running' ? Math.min(3, Math.floor(progress * 4)) : 0;
 
   const startSession = async () => {
     const plannedMs = minutes * MINUTE;
@@ -225,35 +232,62 @@ export default function FocusScreen() {
         ) : null}
 
         <View style={styles.dialWrap}>
-          <View>
-            <Ripple size={268} color={accent} trigger={celebrate} />
-            <DottedDial size={268} progress={progress} live={state === 'running'}>
+          {settings.focusBuddy ? (
+            <View style={styles.center}>
+              <FocusBuddy
+                size={230}
+                mood={state === 'running' ? moodFor(progress) : state === 'done' ? 'overjoyed' : 'hopeful'}
+                feeds={cookies}
+                celebrating={state === 'done'}
+              />
               {state === 'done' ? (
-                <View key="done" style={styles.center}>
-                  <Ionicons name="checkmark" size={44} color={accent} />
-                  <Txt variant="subhead" tone="secondary">
-                    {formatDuration(minutes * MINUTE)} focused
-                  </Txt>
-                </View>
+                <Txt variant="title" align="center">
+                  {formatDuration(doneMs)} focused!
+                </Txt>
               ) : (
-                <View style={styles.center}>
-                  <RollingText text={formatCountdown(remaining)} variant="hero" />
-                  <Txt variant="subhead" tone="secondary">
-                    {state === 'running' ? 'remaining' : 'ready when you are'}
-                  </Txt>
-                </View>
+                <RollingText text={formatCountdown(remaining)} variant="hero" />
               )}
-            </DottedDial>
-          </View>
+              <View style={styles.cookieRow} accessibilityLabel={`${state === 'done' ? 4 : cookies} of 4 cookies`}>
+                {[0, 1, 2, 3].map((i) => (
+                  <Txt key={i} variant="body" style={{ opacity: i < (state === 'done' ? 4 : cookies) ? 1 : 0.25 }}>
+                    🍪
+                  </Txt>
+                ))}
+              </View>
+            </View>
+          ) : (
+            <View>
+              <Ripple size={268} color={accent} trigger={celebrate} />
+              <DottedDial size={268} progress={progress} live={state === 'running'}>
+                {state === 'done' ? (
+                  <View key="done" style={styles.center}>
+                    <Ionicons name="checkmark" size={44} color={accent} />
+                    <Txt variant="subhead" tone="secondary">
+                      {formatDuration(doneMs)} focused
+                    </Txt>
+                  </View>
+                ) : (
+                  <View style={styles.center}>
+                    <RollingText text={formatCountdown(remaining)} variant="hero" />
+                    <Txt variant="subhead" tone="secondary">
+                      {state === 'running' ? 'remaining' : 'ready when you are'}
+                    </Txt>
+                  </View>
+                )}
+              </DottedDial>
+            </View>
+          )}
           {state === 'running' && settings.bodyDouble ? (
-            <BodyDouble sound={settings.ambientSound} />
+            <BodyDouble sound={settings.ambientSound} companion={!settings.focusBuddy} />
           ) : (
             <Txt variant="subhead" tone="secondary" align="center" style={styles.message}>
               {state === 'running'
                 ? 'Stay with it — your phone can wait.\nThoughts popping up? Park them below.'
                 : state === 'done'
                   ? 'Lovely. Stretch, drink some water,\nthen decide what’s next.'
-                  : 'Pick a length, then hold to begin.\nShort sessions count too.'}
+                  : settings.focusBuddy
+                    ? 'Your buddy gets a cookie every quarter\nof the way. Shall we?'
+                    : 'Pick a length, then hold to begin.\nShort sessions count too.'}
             </Txt>
           )}
         </View>
@@ -284,6 +318,14 @@ export default function FocusScreen() {
           {state !== 'running' ? (
             <View>
               <Card>
+                <ListRowToggle
+                  icon="happy-outline"
+                  title="Focus buddy"
+                  detail="A hamster that cheers you on and gets a cookie as you go."
+                  value={settings.focusBuddy}
+                  onChange={(v) => update({ focusBuddy: v })}
+                />
+                <Divider inset={52} />
                 <ListRowToggle
                   icon="people-outline"
                   title="Body double"
@@ -481,6 +523,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   dialWrap: { alignItems: 'center', marginTop: 24, marginBottom: 28 },
+  cookieRow: { flexDirection: 'row', gap: 6, marginTop: 6 },
   center: { alignItems: 'center' },
   message: { marginTop: 16, paddingHorizontal: 40 },
   reflectRow: { flexDirection: 'row', gap: 8, marginTop: 4 },

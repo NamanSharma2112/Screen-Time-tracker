@@ -8,6 +8,10 @@ focus timer.
 | --- | --- | --- | --- | --- |
 | ![](docs/screenshots/onboarding-privacy.png) | ![](docs/screenshots/today-light.png) | ![](docs/screenshots/island-toast.png) | ![](docs/screenshots/focus-dark.png) | ![](docs/screenshots/brain-dump-dark.png) |
 
+| Focus buddy | Session complete (dark) |
+| --- | --- |
+| ![](docs/screenshots/focus-buddy-light.png) | ![](docs/screenshots/focus-buddy-done-dark.png) |
+
 > **Publishing?** Start with [`docs/play-store/README.md`](docs/play-store/README.md). It covers
 > placeholders to fill in, hosting the policies, Data safety answers, listing copy, and Play's
 > 12‑tester rule.
@@ -37,6 +41,11 @@ The app has three tabs, so everything is one tap away:
   - A "session complete" notification, a streak that doesn't break before the day is over, and
     wording that never shames you for stopping.
 - **Brain dump list**: tick items off, swipe left to delete, and clear finished ones.
+- **Focus buddy**: a live-animated hamster on the focus screen. It breathes, blinks and twitches
+  its ears while you work, catches a cookie at every quarter of the session (and chews it), gets
+  happier as you go, and hops with its paws up when the timer completes. All layers are static SVGs
+  animated only with transform/opacity on the UI thread, so it stays smooth on mid-range Android,
+  and it holds still when the system's reduce-motion setting is on. Can be turned off in Focus.
 - **Body double**: during focus, the screen stays on with a softly breathing companion,
   encouraging lines, and optional brown or pink noise (generated in‑repo, no licensing issues).
 - **Task breakdown**: split a daunting task into tiny steps, each with its own 5–25 min timer.

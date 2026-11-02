@@ -35,7 +35,7 @@ const LINES = [
  * This keeps the screen on (so the phone can sit on the desk like a lamp), shows a softly breathing
  * companion with the occasional encouraging line, and can play gentle ambient noise.
  */
-export function BodyDouble({ sound }: { sound: 'off' | 'brown' | 'pink' }) {
+export function BodyDouble({ sound, companion = true }: { sound: 'off' | 'brown' | 'pink'; companion?: boolean }) {
   useKeepAwake();
   const { accent, accentSoft } = useTheme();
   const reduceMotion = useReducedMotion();
@@ -72,10 +72,12 @@ export function BodyDouble({ sound }: { sound: 'off' | 'brown' | 'pink' }) {
 
   return (
     <View style={styles.wrap} accessibilityLabel="Body double is on. The screen will stay awake.">
-      <View style={styles.orbBox}>
-        <Animated.View style={[styles.halo, { backgroundColor: accentSoft }, halo]} />
-        <Animated.View style={[styles.orb, { backgroundColor: accent }, orb]} />
-      </View>
+      {companion ? (
+        <View style={styles.orbBox}>
+          <Animated.View style={[styles.halo, { backgroundColor: accentSoft }, halo]} />
+          <Animated.View style={[styles.orb, { backgroundColor: accent }, orb]} />
+        </View>
+      ) : null}
       <Animated.View key={line}>
         <Txt variant="subhead" tone="secondary" align="center">
           {LINES[line]}
