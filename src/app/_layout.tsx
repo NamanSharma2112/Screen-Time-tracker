@@ -86,6 +86,7 @@ function Navigator() {
               <Stack.Screen name="tasks/[id]" />
               <Stack.Screen name="menu" />
               <Stack.Screen name="recap" />
+              <Stack.Screen name="tree" />
               <Stack.Screen
                 name="focus"
                 options={{

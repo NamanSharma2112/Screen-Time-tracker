@@ -50,6 +50,10 @@ The app has three tabs, so everything is one tap away:
 - **Hyperfocus check‑in**: a background check about every 15 minutes, sending one gentle nudge
   when a single app has held you past your threshold. It can cover social/entertainment apps only,
   or all apps.
+- **Streak tree**: a potted plant on Today, its own screen and a home‑screen widget. It grows one
+  leaf for every finished day under your goal, droops (never dies, never loses leaves) on days
+  over it, and blossoms after 60 good days. Drawn as one static SVG shared by app and widget
+  (`src/tree/`). Daily totals are kept on device so it outlives Android's ~1‑week history.
 - **Home‑screen widget**: today's dial and total. Add it from Preferences or from the launcher.
 - **Weekly recap**: a story‑sized card you can share as an image.
 - **Onboarding**: welcome, then privacy promise and consent to the Terms, then the Usage access

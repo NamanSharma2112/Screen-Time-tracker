@@ -23,7 +23,12 @@ export function AppIcon({ app, size = 40 }: { app?: AppMeta; size?: number }) {
     );
   }
   return (
-    <View style={[styles.tile, { width: size, height: size, borderRadius: radius, backgroundColor: app?.color ?? '#A6A6AE' }]}>
+    <View
+      style={[
+        styles.tile,
+        { width: size, height: size, borderRadius: radius, backgroundColor: app?.color ?? '#A6A6AE' },
+      ]}
+    >
       {app?.glyph ? (
         <Ionicons name={app.glyph as ComponentProps<typeof Ionicons>['name']} size={size * 0.56} color="#fff" />
       ) : (

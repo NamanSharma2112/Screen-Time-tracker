@@ -53,7 +53,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
     "legal:docs": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/build-legal-docs.mjs",
-    "legal:licenses": "node scripts/build-licenses.mjs"
+    "legal:licenses": "node scripts/build-licenses.mjs",
+    "assets": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/generate-assets.mjs"
   },
   "private": true
 }

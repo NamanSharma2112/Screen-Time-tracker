@@ -10,6 +10,8 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+// The streak tree drawing is shared with the app (TypeScript source; run with `npm run assets`).
+const { treeSvg } = await import(path.join(root, 'src/tree/svg.ts'));
 
 const ACCENT_A = '#FF7A84';
 const ACCENT_B = '#FF3B5C';
@@ -95,6 +97,19 @@ const ASSETS = [
         `<text x="180" y="318" text-anchor="middle" font-family="Inter, Roboto, sans-serif" font-size="17" font-weight="600" fill="#6E6E76">Today · 42 pickups</text>`,
     ),
   ],
+  // Streak-tree widget preview for the launcher's widget picker.
+  [
+    'assets/tree-widget-preview.png',
+    360,
+    360,
+    svg(
+      360,
+      360,
+      `<rect x="6" y="6" width="348" height="348" rx="44" fill="#FFFFFF"/>` +
+        `<g transform="translate(55 20)">${treeSvg({ growth: 12, vitality: 1, today: true }, { accent: ACCENT_B, dark: false, size: 250 })}</g>` +
+        `<text x="180" y="318" text-anchor="middle" font-family="Inter, Roboto, sans-serif" font-size="17" font-weight="600" fill="#6E6E76">Sapling · 5-day streak</text>`,
+    ),
+  ],
   // Play Store listing.
   ['docs/play-store/icon-512.png', 512, 512, svg(512, 512, bg(512, 512) + dial({ cx: 256, cy: 256, r: 135 }))],
   [
@@ -120,7 +135,7 @@ for (const [file, w, h, markup] of ASSETS) {
   await page.setContent(`<html><body style="margin:0;background:transparent">${markup}</body></html>`);
   const out = path.join(root, file);
   fs.mkdirSync(path.dirname(out), { recursive: true });
-  await page.locator('svg').screenshot({ path: out, omitBackground: true });
+  await page.locator('body > svg').first().screenshot({ path: out, omitBackground: true });
   console.log(`✓ ${file} (${w}×${h})`);
 }
 await browser.close();

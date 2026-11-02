@@ -73,6 +73,20 @@
               "resizeMode": "horizontal|vertical",
               "previewImage": "./assets/widget-preview.png",
               "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "StreakTree",
+              "label": "Your streak tree",
+              "description": "Grows a leaf every day you stay under your goal",
+              "minWidth": "110dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 2,
+              "maxResizeWidth": "320dp",
+              "maxResizeHeight": "320dp",
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/tree-widget-preview.png",
+              "updatePeriodMillis": 1800000
             }
           ]
         }

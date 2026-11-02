@@ -22,7 +22,7 @@ import { SettingsPreview, useSettings, type Settings, type ThemePreference } fro
 import { useUsage } from '@/state/usage';
 import { ACCENTS } from '@/theme/colors';
 import { useTheme } from '@/theme/useTheme';
-import { pinWidget, widgetsAvailable } from '@/widget';
+import { pinWidget, TREE_WIDGET_NAME, WIDGET_NAME, widgetsAvailable } from '@/widget';
 
 type PickerKey =
   | 'dailyGoalMinutes'
@@ -149,6 +149,19 @@ function SettingsContent({
   // Release builds made with NO_INTERNET=1 have no INTERNET permission at all (see app.config.ts).
   const offline = Constants.expoConfig?.extra?.noInternet === true;
   const toast = useToast();
+  const addWidget = async (name: string) => {
+    const ok = await pinWidget(name);
+    toast(
+      ok
+        ? { title: 'Check your home screen', subtitle: 'Confirm to add the widget', icon: 'grid-outline' }
+        : {
+            title: 'Add it from your launcher',
+            subtitle: 'Long-press the home screen › Widgets',
+            icon: 'grid-outline',
+            tone: 'neutral',
+          },
+    );
+  };
 
   return (
     <>
@@ -240,27 +253,9 @@ function SettingsContent({
             {widgetsAvailable ? (
               <>
                 <Divider inset={48} />
-                <ListRow
-                  icon="grid-outline"
-                  label="Add widget to home screen"
-                  onPress={async () => {
-                    const ok = await pinWidget();
-                    toast(
-                      ok
-                        ? {
-                            title: 'Check your home screen',
-                            subtitle: 'Confirm to add the widget',
-                            icon: 'grid-outline',
-                          }
-                        : {
-                            title: 'Add it from your launcher',
-                            subtitle: 'Long-press the home screen › Widgets',
-                            icon: 'grid-outline',
-                            tone: 'neutral',
-                          },
-                    );
-                  }}
-                />
+                <ListRow icon="grid-outline" label="Add dial widget" onPress={() => addWidget(WIDGET_NAME)} />
+                <Divider inset={48} />
+                <ListRow icon="leaf-outline" label="Add tree widget" onPress={() => addWidget(TREE_WIDGET_NAME)} />
               </>
             ) : null}
           </Card>

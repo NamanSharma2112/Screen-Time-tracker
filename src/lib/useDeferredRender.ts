@@ -25,10 +25,9 @@ export function useDeferredRender(afterTransition = false): boolean {
       return () => cancelAnimationFrame(frame);
     }
     // `transitionEnd` is emitted by native-stack screens; the timer covers platforms that don't.
-    const unsubscribe = (navigation as unknown as { addListener: (e: string, cb: () => void) => () => void }).addListener(
-      'transitionEnd',
-      finish,
-    );
+    const unsubscribe = (
+      navigation as unknown as { addListener: (e: string, cb: () => void) => () => void }
+    ).addListener('transitionEnd', finish);
     const timer = setTimeout(finish, 450);
     return () => {
       unsubscribe?.();

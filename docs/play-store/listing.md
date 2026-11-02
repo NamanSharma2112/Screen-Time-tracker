@@ -38,8 +38,12 @@ FOCUS, GENTLY — DESIGNED WITH ADHD IN MIND
 • Daily check-ins that show how screen time and mood line up
 • Streaks that don't punish you, and copy that never shames
 
+GROW A TREE
+• A streak tree that grows a leaf every day you stay under your goal
+• Over your goal? It droops a little — and perks up after your next good day. It never dies.
+
 AT A GLANCE
-• Home-screen widget with today's dial
+• Home-screen widgets: today's dial and your streak tree
 • Shareable weekly recap card
 
 PRIVATE BY DESIGN

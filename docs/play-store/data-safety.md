@@ -19,6 +19,7 @@ For reference, this is what the app reads or stores **on the device only**:
 | Installed app names, icons and categories | PackageManager | No, held in memory only | No |
 | Preferences, focus history, reflections | User | Yes, app-private storage | No* |
 | Brain-dump notes, tasks, check-ins, dopamine menu, up-next reminders | User | Yes, app-private storage | No* |
+| Daily total + goal per finished day (streak tree) | Derived on device | Yes, app-private storage | No* |
 | Recap image | Generated on device | Temporary file | Only if the user shares it via the Android share sheet (user-initiated; not collection by the developer) |
 
 \* If the user has Android device backup turned on, Android may include app-private storage in
