@@ -58,6 +58,8 @@ const svg = (w, h, body) =>
 const ASSETS = [
   // Legacy/full icon (also used by Expo for the Play icon).
   ['assets/icon.png', 1024, 1024, svg(1024, 1024, bg(1024, 1024) + dial({ cx: 512, cy: 512, r: 270 }))],
+  // In-app logo (shown in a rounded tile by <Logo/>); small so it decodes cheaply.
+  ['assets/logo.png', 256, 256, svg(256, 256, bg(256, 256) + dial({ cx: 128, cy: 128, r: 68 }))],
   // Adaptive icon: art must sit inside the central 66% safe zone.
   ['assets/android-icon-foreground.png', 1024, 1024, svg(1024, 1024, dial({ cx: 512, cy: 512, r: 200 }))],
   ['assets/android-icon-background.png', 1024, 1024, svg(1024, 1024, bg(1024, 1024))],

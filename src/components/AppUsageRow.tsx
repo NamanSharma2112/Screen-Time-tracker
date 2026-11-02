@@ -1,5 +1,4 @@
 import { StyleSheet, View } from 'react-native';
-import Animated, { LinearTransition } from 'react-native-reanimated';
 
 import { CATEGORIES } from '@/data/categories';
 import type { AppMeta } from '@/data/types';
@@ -25,7 +24,7 @@ export function AppUsageRow({ app, ms, share, detail, index, onPress }: Props) {
   return (
     // The card around this row owns the entrance; the row only animates re-ordering when the
     // ranking changes (e.g. switching days), so it reads as the same list shuffling.
-    <Animated.View layout={LinearTransition.duration(200)}>
+    <View>
       <PressableScale
         onPress={onPress}
         scaleTo={0.98}
@@ -49,7 +48,7 @@ export function AppUsageRow({ app, ms, share, detail, index, onPress }: Props) {
           <ProgressLine value={share} color={color} height={4} delay={150 + index * 60} style={styles.bar} />
         </View>
       </PressableScale>
-    </Animated.View>
+    </View>
   );
 }
 

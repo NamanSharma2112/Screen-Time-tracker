@@ -1,8 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { haptics } from '@/lib/haptics';
 import type { ComponentProps, ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+
+import { haptics } from '@/lib/haptics';
 
 import { useTheme } from '@/theme/useTheme';
 
@@ -22,14 +22,9 @@ type Props = {
   labelColor?: string;
 };
 
-/** A grouped-table cell. Tappable rows highlight like UITableView cells (instant in, eased out). */
+/** A grouped-table cell. Tappable rows highlight instantly while pressed, like UITableView cells. */
 export function ListRow({ label, value, icon, marker, left, right, onPress, muted, labelColor }: Props) {
   const { colors, accent } = useTheme();
-  const highlight = useSharedValue(0);
-  const highlightStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(highlight.value, [0, 1], ['rgba(0,0,0,0)', colors.separator]),
-  }));
-
   const content = (
     <View style={styles.row}>
       {marker ? <View style={[styles.marker, { backgroundColor: marker }]} /> : null}
@@ -62,14 +57,14 @@ export function ListRow({ label, value, icon, marker, left, right, onPress, mute
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={value ? `${label}, ${value}` : label}
-      onPressIn={() => highlight.set(withTiming(1, { duration: 60 }))}
-      onPressOut={() => highlight.set(withTiming(0, { duration: 350 }))}
+      unstable_pressDelay={0}
       onPress={() => {
         haptics.selection();
         onPress();
       }}
+      style={({ pressed }) => pressed && { backgroundColor: colors.separator }}
     >
-      <Animated.View style={highlightStyle}>{content}</Animated.View>
+      {content}
     </Pressable>
   );
 }

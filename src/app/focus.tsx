@@ -2,15 +2,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState, type ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  interpolateColor,
-  LinearTransition,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 
 import { BodyDouble } from '@/components/BodyDouble';
 import { BrainDumpSheet } from '@/components/BrainDumpSheet';
@@ -40,7 +31,7 @@ import {
 import { notesStore } from '@/state/notes';
 import { useSettings } from '@/state/settings';
 import { taskProgress, tasksStore, toggleStep } from '@/state/tasks';
-import { timings, useEntering } from '@/theme/motion';
+
 import { useTheme } from '@/theme/useTheme';
 
 const LENGTHS = [5, 15, 25, 45, 60];
@@ -52,7 +43,6 @@ const REFLECTIONS: { value: Reflection; label: string; icon: ComponentProps<type
 ];
 
 export default function FocusScreen() {
-  const enter = useEntering();
   const { colors, accent } = useTheme();
   const { settings, update } = useSettings();
   const toast = useToast();
@@ -234,17 +224,17 @@ export default function FocusScreen() {
           </Txt>
         ) : null}
 
-        <Animated.View entering={enter(0)} style={styles.dialWrap}>
+        <View style={styles.dialWrap}>
           <View>
             <Ripple size={268} color={accent} trigger={celebrate} />
             <DottedDial size={268} progress={progress} live={state === 'running'}>
               {state === 'done' ? (
-                <Animated.View key="done" entering={FadeIn.duration(300)} style={styles.center}>
+                <View key="done" style={styles.center}>
                   <Ionicons name="checkmark" size={44} color={accent} />
                   <Txt variant="subhead" tone="secondary">
                     {formatDuration(minutes * MINUTE)} focused
                   </Txt>
-                </Animated.View>
+                </View>
               ) : (
                 <View style={styles.center}>
                   <RollingText text={formatCountdown(remaining)} variant="hero" />
@@ -266,11 +256,11 @@ export default function FocusScreen() {
                   : 'Pick a length, then hold to begin.\nShort sessions count too.'}
             </Txt>
           )}
-        </Animated.View>
+        </View>
 
         <Sheet>
           {state === 'done' ? (
-            <Animated.View entering={FadeIn.duration(250)} exiting={FadeOut.duration(150)}>
+            <View>
               <SectionLabel>How did that feel?</SectionLabel>
               <View style={styles.reflectRow}>
                 {REFLECTIONS.map((r) => (
@@ -278,7 +268,7 @@ export default function FocusScreen() {
                 ))}
               </View>
               {reflected ? (
-                <Animated.View entering={FadeIn.duration(250)}>
+                <View>
                   <Txt variant="footnote" tone="secondary" align="center" style={styles.reflectNote}>
                     {reflected === 'focused'
                       ? 'Great — notice what helped, and do more of it.'
@@ -286,13 +276,13 @@ export default function FocusScreen() {
                         ? 'Normal! Try a shorter session or a brain dump first.'
                         : 'That’s useful to know. Tomorrow, try 5 minutes somewhere quiet.'}
                   </Txt>
-                </Animated.View>
+                </View>
               ) : null}
-            </Animated.View>
+            </View>
           ) : null}
 
           {state !== 'running' ? (
-            <Animated.View entering={enter(1)} layout={LinearTransition.duration(200)}>
+            <View>
               <Card>
                 <ListRowToggle
                   icon="people-outline"
@@ -315,10 +305,10 @@ export default function FocusScreen() {
                   </View>
                 ) : null}
               </Card>
-            </Animated.View>
+            </View>
           ) : null}
 
-          <Animated.View entering={enter(1)} layout={LinearTransition.duration(200)}>
+          <View>
             <Card>
               <StatColumns
                 stats={[
@@ -328,9 +318,9 @@ export default function FocusScreen() {
                 ]}
               />
             </Card>
-          </Animated.View>
+          </View>
 
-          <Animated.View entering={enter(2)} layout={LinearTransition.duration(200)}>
+          <View>
             <SectionLabel
               right={
                 notes.length ? (
@@ -371,7 +361,7 @@ export default function FocusScreen() {
                   </View>
                 ))}
             </Card>
-          </Animated.View>
+          </View>
         </Sheet>
       </Screen>
       <BrainDumpSheet visible={dumpOpen} onClose={() => setDumpOpen(false)} />
@@ -421,14 +411,6 @@ function Chip({
   onPress: () => void;
 }) {
   const { colors, accent, accentSoft } = useTheme();
-  const s = useSharedValue(selected ? 1 : 0);
-  useEffect(() => {
-    s.set(withTiming(selected ? 1 : 0, timings.change));
-  }, [selected, s]);
-  const style = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(s.get(), [0, 1], [colors.circleButton, accentSoft]),
-    borderColor: interpolateColor(s.get(), [0, 1], [colors.separator, accent]),
-  }));
   return (
     <PressableScale
       disabled={disabled}
@@ -438,12 +420,18 @@ function Chip({
       accessibilityRole="radio"
       accessibilityLabel={/^\d+m$/.test(label) ? label.replace('m', ' minutes') : label}
       accessibilityState={{ checked: selected, disabled }}
+      style={[
+        styles.chip,
+        {
+          opacity: disabled && !selected ? 0.4 : 1,
+          backgroundColor: selected ? accentSoft : colors.circleButton,
+          borderColor: selected ? accent : colors.separator,
+        },
+      ]}
     >
-      <Animated.View style={[styles.chip, { opacity: disabled && !selected ? 0.4 : 1 }, style]}>
-        <Txt variant="footnote" weight="600" color={selected ? accent : undefined}>
-          {label}
-        </Txt>
-      </Animated.View>
+      <Txt variant="footnote" weight="600" color={selected ? accent : undefined}>
+        {label}
+      </Txt>
     </PressableScale>
   );
 }
@@ -460,27 +448,21 @@ function ReflectTile({
   onPress: () => void;
 }) {
   const { colors, accent, accentSoft } = useTheme();
-  const s = useSharedValue(selected ? 1 : 0);
-  useEffect(() => {
-    s.set(withTiming(selected ? 1 : 0, timings.change));
-  }, [selected, s]);
-  const style = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(s.get(), [0, 1], [colors.card, accentSoft]),
-    borderColor: interpolateColor(s.get(), [0, 1], ['rgba(0,0,0,0)', accent]),
-  }));
   return (
     <PressableScale
       containerStyle={{ flex: 1 }}
       onPress={onPress}
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
+      style={[
+        styles.reflectTile,
+        { backgroundColor: selected ? accentSoft : colors.card, borderColor: selected ? accent : 'transparent' },
+      ]}
     >
-      <Animated.View style={[styles.reflectTile, style]}>
-        <Ionicons name={icon} size={24} color={selected ? accent : colors.textSecondary} />
-        <Txt variant="footnote" weight={selected ? '700' : '500'} tone={selected ? 'primary' : 'secondary'}>
-          {label}
-        </Txt>
-      </Animated.View>
+      <Ionicons name={icon} size={24} color={selected ? accent : colors.textSecondary} />
+      <Txt variant="footnote" weight={selected ? '700' : '500'} tone={selected ? 'primary' : 'secondary'}>
+        {label}
+      </Txt>
     </PressableScale>
   );
 }

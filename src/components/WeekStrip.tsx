@@ -1,24 +1,13 @@
-import { useEffect } from 'react';
+import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  interpolateColor,
-  useAnimatedProps,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withDelay,
-  withTiming,
-} from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 
 import { dayLetter, dayLong, formatDuration, todayKey } from '@/lib/time';
-import { timings } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 import { PressableScale } from './PressableScale';
 import { Txt } from './Txt';
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 const SIZE = 44;
 const STROKE = 3;
 
@@ -31,6 +20,7 @@ type Props = {
   onSelect: (key: string) => void;
 };
 
+/** Seven day rings. Static drawing (no animated SVG props) — cheap to redraw when selection changes. */
 export function WeekStrip({ keys, totals, goalMs, selected, onSelect }: Props) {
   const today = todayKey();
   return (
@@ -38,14 +28,12 @@ export function WeekStrip({ keys, totals, goalMs, selected, onSelect }: Props) {
       {keys.map((key, i) => (
         <DayRing
           key={key}
-          index={i}
-          letter={dayLetter(key)}
-          label={dayLong(key)}
+          dayKey={key}
           total={totals[i]}
           progress={totals[i] != null ? totals[i]! / goalMs : 0}
           future={key > today}
           selected={key === selected}
-          onPress={() => onSelect(key)}
+          onSelect={onSelect}
         />
       ))}
     </View>
@@ -53,100 +41,66 @@ export function WeekStrip({ keys, totals, goalMs, selected, onSelect }: Props) {
 }
 
 type RingProps = {
-  index: number;
-  letter: string;
-  label: string;
+  dayKey: string;
   total?: number;
   progress: number;
   future: boolean;
   selected: boolean;
-  onPress: () => void;
+  onSelect: (key: string) => void;
 };
 
-function DayRing({ index, letter, label, total, progress, future, selected, onPress }: RingProps) {
+const DayRing = memo(function DayRing({ dayKey, total, progress, future, selected, onSelect }: RingProps) {
   const { colors, accent, accentSoft } = useTheme();
-  const reduceMotion = useReducedMotion();
   const r = (SIZE - STROKE) / 2;
   const circumference = 2 * Math.PI * r;
-
-  const p = useSharedValue(0);
-  useEffect(() => {
-    const target = Math.min(1, progress);
-    p.set(reduceMotion ? target : withDelay(index * 40, withTiming(target, timings.reveal)));
-  }, [progress, index, reduceMotion, p]);
-  const arcProps = useAnimatedProps(() => ({ strokeDashoffset: circumference * (1 - p.value) }));
-
-  const sel = useSharedValue(selected ? 1 : 0);
-  useEffect(() => {
-    sel.set(withTiming(selected ? 1 : 0, timings.change));
-  }, [selected, sel]);
-  const bgStyle = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(sel.value, [0, 1], [colors.circleButton, accentSoft]),
-  }));
-
+  const p = Math.min(1, progress);
   const over = progress >= 1;
   const ringColor = selected || over ? accent : colors.textSecondary;
 
   return (
     <PressableScale
       disabled={future}
-      onPress={onPress}
+      onPress={() => onSelect(dayKey)}
       scaleTo={0.94}
       hitSlop={4}
       accessibilityRole="button"
       accessibilityState={{ selected, disabled: future }}
-      accessibilityLabel={future ? `${label}, upcoming` : `${label}, ${formatDuration(total ?? 0)}`}
+      accessibilityLabel={future ? `${dayLong(dayKey)}, upcoming` : `${dayLong(dayKey)}, ${formatDuration(total ?? 0)}`}
+      style={[styles.ring, { backgroundColor: selected ? accentSoft : colors.circleButton }]}
     >
-      <Animated.View style={[styles.ring, bgStyle]}>
-        <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
+      <Svg width={SIZE} height={SIZE} style={StyleSheet.absoluteFill}>
+        <Circle
+          cx={SIZE / 2}
+          cy={SIZE / 2}
+          r={r}
+          stroke={colors.track}
+          strokeWidth={future ? 1.5 : STROKE}
+          strokeDasharray={future ? '2 4' : undefined}
+          fill="none"
+        />
+        {!future && p > 0 ? (
           <Circle
             cx={SIZE / 2}
             cy={SIZE / 2}
             r={r}
-            stroke={colors.track}
-            strokeWidth={future ? 1.5 : STROKE}
-            strokeDasharray={future ? '2 4' : undefined}
+            stroke={ringColor}
+            strokeWidth={STROKE}
+            strokeLinecap="round"
             fill="none"
+            strokeDasharray={`${circumference} ${circumference}`}
+            strokeDashoffset={circumference * (1 - p)}
+            transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
           />
-          {!future ? (
-            <AnimatedCircle
-              cx={SIZE / 2}
-              cy={SIZE / 2}
-              r={r}
-              stroke={ringColor}
-              strokeWidth={STROKE}
-              strokeLinecap="round"
-              fill="none"
-              strokeDasharray={`${circumference} ${circumference}`}
-              animatedProps={arcProps}
-              transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}
-            />
-          ) : null}
-        </Svg>
-        <Txt
-          variant="footnote"
-          weight="600"
-          tone={future ? 'tertiary' : 'primary'}
-          color={selected ? accent : undefined}
-        >
-          {letter}
-        </Txt>
-      </Animated.View>
+        ) : null}
+      </Svg>
+      <Txt variant="footnote" weight="600" tone={future ? 'tertiary' : 'primary'} color={selected ? accent : undefined}>
+        {dayLetter(dayKey)}
+      </Txt>
     </PressableScale>
   );
-}
+});
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-  },
-  ring: {
-    width: SIZE,
-    height: SIZE,
-    borderRadius: SIZE / 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  row: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20 },
+  ring: { width: SIZE, height: SIZE, borderRadius: SIZE / 2, alignItems: 'center', justifyContent: 'center' },
 });

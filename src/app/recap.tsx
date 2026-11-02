@@ -2,7 +2,6 @@ import * as Sharing from 'expo-sharing';
 import { router } from 'expo-router';
 import { useRef, useState } from 'react';
 import { Platform, StyleSheet, View, type ViewInstance } from 'react-native';
-import Animated from 'react-native-reanimated';
 import { captureRef } from 'react-native-view-shot';
 
 import { PrimaryButton } from '@/components/Buttons';
@@ -10,15 +9,16 @@ import { useToast } from '@/components/IslandToast';
 import { PressableScale } from '@/components/PressableScale';
 import { RecapCard, type RecapData } from '@/components/RecapCard';
 import { Screen } from '@/components/Screen';
+import { Bone, SkeletonPulse } from '@/components/Skeleton';
 import { Txt } from '@/components/Txt';
 import { averageMs } from '@/data/aggregate';
 import type { DayUsage } from '@/data/types';
 import { haptics } from '@/lib/haptics';
+import { useDeferredRender } from '@/lib/useDeferredRender';
 import { addDays, dateKey, dayLetter, dayLong, formatRange, MINUTE, parseKey, todayKey, weekKeys } from '@/lib/time';
 import { focusHistory } from '@/state/focus';
 import { useSettings } from '@/state/settings';
 import { useDays, useUsage } from '@/state/usage';
-import { popIn } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 export default function RecapScreen() {
@@ -47,6 +47,8 @@ export default function RecapScreen() {
   const end = addDays(parseKey(week[6]), 1).getTime();
   const focus = history.filter((r) => r.start >= start && r.start < end);
   const best = real.filter((d) => d.totalMs > 0).sort((a, b) => a.totalMs - b.totalMs)[0];
+
+  const ready = useDeferredRender(true);
 
   const data: RecapData = {
     range: formatRange(week[0], week[6]),
@@ -108,9 +110,15 @@ export default function RecapScreen() {
           </PressableScale>
         ))}
       </View>
-      <Animated.View key={which} entering={popIn(60)} style={styles.cardWrap}>
-        <RecapCard ref={cardRef} data={data} accent={accent} />
-      </Animated.View>
+      <View key={which} style={styles.cardWrap}>
+        {ready && real.length ? (
+          <RecapCard ref={cardRef} data={data} accent={accent} />
+        ) : (
+          <SkeletonPulse>
+            <Bone w={320} h={569} r={32} />
+          </SkeletonPulse>
+        )}
+      </View>
       <Txt variant="footnote" tone="tertiary" align="center" style={styles.note}>
         The image is made on your phone. Nothing is uploaded unless you choose where to share it.
       </Txt>

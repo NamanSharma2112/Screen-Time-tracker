@@ -1,14 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Platform } from 'react-native';
-import {
-  Easing,
-  FadeIn,
-  Keyframe,
-  ReduceMotion,
-  useReducedMotion,
-  type WithSpringConfig,
-  type WithTimingConfig,
-} from 'react-native-reanimated';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { Easing, useReducedMotion, type WithSpringConfig, type WithTimingConfig } from 'react-native-reanimated';
 
 /**
  * Motion tokens.
@@ -44,24 +36,16 @@ export const timings = {
 export const gestureSpring = { duration: 280, dampingRatio: 1 } satisfies WithSpringConfig;
 
 /**
- * Screen sections appear together with one quick fade — no stagger, no movement — so content is
- * readable and tappable immediately. (`index` is accepted for call-site compatibility.)
+ * Screen sections render immediately with no entrance animation: on mid-range Android phones,
+ * dozens of simultaneous layout animations during a screen transition were the main source of
+ * dropped frames. Returns `undefined` so existing `entering={enter(i)}` call sites are no-ops.
  */
 export function useEntering() {
-  const builder = useMemo(() => FadeIn.duration(160).reduceMotion(ReduceMotion.Never), []);
-  return useCallback((_index = 0) => builder, [builder]);
+  return useCallback((_index = 0): undefined => undefined, []);
 }
 
 /** Entrance for a small element that appears in place (icon, checkmark): scale 0.9 → 1 + fade. */
-export const popIn = (delay = 0) =>
-  Platform.OS === 'web'
-    ? FadeIn.duration(250).delay(delay) // see buildEntering: custom web animations misbehave
-    : new Keyframe({
-        0: { opacity: 0, transform: [{ scale: 0.94 }] },
-        100: { opacity: 1, transform: [{ scale: 1 }], easing: curves.out },
-      })
-        .duration(200)
-        .delay(delay);
+export const popIn = (_delay = 0): undefined => undefined;
 
 /**
  * Tweens a number on the JS thread (for text that counts up/down).

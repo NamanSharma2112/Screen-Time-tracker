@@ -1,9 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import { haptics } from '@/lib/haptics';
-import { popIn } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 import { BottomSheet } from './BottomSheet';
@@ -61,9 +59,9 @@ export function OptionSheet<T extends string | number | boolean>({
                   ) : null}
                 </View>
                 {selected ? (
-                  <Animated.View entering={popIn()}>
+                  <View>
                     <Ionicons name="checkmark" size={20} color={accent} />
-                  </Animated.View>
+                  </View>
                 ) : null}
               </Pressable>
             </View>

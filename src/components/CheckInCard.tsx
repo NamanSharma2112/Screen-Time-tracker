@@ -1,10 +1,8 @@
-import { useEffect } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { haptics } from '@/lib/haptics';
 import { CHECKIN_FIELDS, checkinsStore, setCheckIn, type Level } from '@/state/checkins';
-import { timings } from '@/theme/motion';
+
 import { useTheme } from '@/theme/useTheme';
 
 import { Card, Divider } from './Surfaces';
@@ -55,37 +53,20 @@ export function CheckInCard({ day }: { day: string }) {
   );
 }
 
-function Dot({ on, current, onPress, label }: { on: boolean; current: boolean; onPress: () => void; label: string }) {
+function Dot({ on, onPress, label }: { on: boolean; current: boolean; onPress: () => void; label: string }) {
   const { colors, accent } = useTheme();
-  const v = useSharedValue(on ? 1 : 0);
-  const pop = useSharedValue(1);
-  useEffect(() => {
-    v.set(withTiming(on ? 1 : 0, timings.change));
-  }, [on, v]);
-  useEffect(() => {
-    if (current) {
-      pop.set(1.35);
-      pop.set(withTiming(1, timings.change));
-    }
-  }, [current, pop]);
-  const style = useAnimatedStyle(() => ({
-    transform: [{ scale: (0.85 + v.get() * 0.15) * pop.get() }],
-  }));
   return (
     <Pressable
       onPress={onPress}
       hitSlop={6}
+      unstable_pressDelay={0}
       accessibilityRole="button"
       accessibilityLabel={label}
       style={styles.dotHit}
     >
       {/* Unrated dots are clear outlines so they read on any card colour. */}
-      <Animated.View
-        style={[
-          styles.dot,
-          on ? { backgroundColor: accent } : { borderWidth: 1.5, borderColor: colors.textTertiary },
-          style,
-        ]}
+      <View
+        style={[styles.dot, on ? { backgroundColor: accent } : { borderWidth: 1.5, borderColor: colors.textTertiary }]}
       />
     </Pressable>
   );

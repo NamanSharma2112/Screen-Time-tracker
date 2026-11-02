@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
-  FadeIn,
-  FadeOut,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -78,7 +76,7 @@ export function BodyDouble({ sound }: { sound: 'off' | 'brown' | 'pink' }) {
         <Animated.View style={[styles.halo, { backgroundColor: accentSoft }, halo]} />
         <Animated.View style={[styles.orb, { backgroundColor: accent }, orb]} />
       </View>
-      <Animated.View key={line} entering={FadeIn.duration(800)} exiting={FadeOut.duration(400)}>
+      <Animated.View key={line}>
         <Txt variant="subhead" tone="secondary" align="center">
           {LINES[line]}
         </Txt>

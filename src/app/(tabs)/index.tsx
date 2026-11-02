@@ -2,7 +2,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import { AppUsageRow } from '@/components/AppUsageRow';
 import { StackedLine } from '@/components/Bars';
@@ -14,19 +13,19 @@ import { Screen } from '@/components/Screen';
 import { StatColumns } from '@/components/StatColumns';
 import { Badge, Card, Divider, SectionLabel, Sheet } from '@/components/Surfaces';
 import { SwipeDays } from '@/components/SwipeDays';
+import { TodaySkeleton } from '@/components/Skeleton';
 import { Txt } from '@/components/Txt';
 import { WeekStrip } from '@/components/WeekStrip';
 import { CATEGORIES } from '@/data/categories';
 import { haptics } from '@/lib/haptics';
+import { useDeferredRender } from '@/lib/useDeferredRender';
 import { dayTitle, formatClock, formatDuration, MINUTE, parseKey, splitDuration, todayKey, weekKeys } from '@/lib/time';
 import { useSettings } from '@/state/settings';
 import { useDays, useUsage } from '@/state/usage';
-import { useEntering } from '@/theme/motion';
 import { refreshWidgets } from '@/widget';
 import { useTheme } from '@/theme/useTheme';
 
 export default function TodayScreen() {
-  const enter = useEntering();
   const { settings } = useSettings();
   const { colors, accent, accentSoft } = useTheme();
   const { apps, source, refresh } = useUsage();
@@ -43,6 +42,9 @@ export default function TodayScreen() {
   const total = day?.totalMs ?? 0;
   const shown = splitDuration(total);
   const isToday = selected === today;
+  // Skeleton while the day's usage is still being read (and for the first frame after mount).
+  const mounted = useDeferredRender();
+  const showSkeleton = !mounted || (selected <= today && !day);
 
   // Keep the home-screen widget in step with what the app shows.
   const todayTotal = days[week.indexOf(today)]?.totalMs;
@@ -77,7 +79,7 @@ export default function TodayScreen() {
           />
         )}
       >
-        <Animated.View entering={enter(1)}>
+        <View>
           <WeekStrip
             keys={week}
             totals={days.map((d) => d?.totalMs)}
@@ -85,128 +87,134 @@ export default function TodayScreen() {
             selected={selected}
             onSelect={setSelected}
           />
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={enter(0)} style={styles.dialWrap}>
-          <SwipeDays
-            canPrev={index > 0}
-            canNext={index < week.length - 1 && week[index + 1] <= today}
-            onChange={(dir) => setSelected(week[index + dir])}
-          >
-            <PressableScale
-              haptic="light"
-              scaleTo={0.97}
-              onPress={() => router.push('/analytics')}
-              accessibilityLabel={`${dayTitle(selected)}: ${formatDuration(total)} of screen time. Swipe left or right to change day. Double-tap for analytics.`}
-            >
-              <DottedDial size={268} progress={total / goalMs} live={isToday}>
-                <RollingText text={`${shown.h}h`} variant="hero" />
-                <RollingText text={`${String(shown.m).padStart(2, '0')}m`} variant="hero" tone="secondary" />
-              </DottedDial>
-            </PressableScale>
-          </SwipeDays>
-          <Txt variant="subhead" tone="secondary" align="center" style={styles.message}>
-            {goalMessage(total, goalMs, isToday)}
-          </Txt>
-        </Animated.View>
-
-        <Sheet>
-          <DataNotice />
-
-          {isToday && total > goalMs ? (
-            <Animated.View entering={enter(2)}>
-              <PressableScale
-                onPress={() => router.push('/menu')}
-                scaleTo={0.98}
-                style={[styles.nudge, { backgroundColor: accentSoft }]}
-                accessibilityRole="button"
+        {showSkeleton ? (
+          <TodaySkeleton />
+        ) : (
+          <>
+            <View style={styles.dialWrap}>
+              <SwipeDays
+                canPrev={index > 0}
+                canNext={index < week.length - 1 && week[index + 1] <= today}
+                onChange={(dir) => setSelected(week[index + dir])}
               >
-                <Ionicons name="sparkles" size={20} color={accent} />
-                <View style={{ flex: 1 }}>
-                  <Txt variant="callout" weight="600">
-                    Craving another scroll?
-                  </Txt>
-                  <Txt variant="footnote" tone="secondary">
-                    Let your dopamine menu pick something better.
-                  </Txt>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={accent} />
-              </PressableScale>
-            </Animated.View>
-          ) : null}
-
-          <Animated.View entering={enter(2)}>
-            <Card>
-              <StatColumns
-                stats={(['productivity', 'social', 'entertainment'] as const).map((c) => ({
-                  value: formatDuration(day?.byCategory[c] ?? 0),
-                  label: CATEGORIES[c].label,
-                  color: CATEGORIES[c].color,
-                }))}
-              />
-              <View style={styles.stackPad}>
-                <StackedLine
-                  segments={(['productivity', 'social', 'entertainment', 'other'] as const).map((c) => ({
-                    value: day?.byCategory[c] ?? 0,
-                    color: CATEGORIES[c].color,
-                  }))}
-                />
-              </View>
-            </Card>
-          </Animated.View>
-
-          <Animated.View entering={enter(3)}>
-            <Card>
-              <StatColumns
-                stats={[
-                  { value: String(day?.pickups ?? 0), label: 'Pickups' },
-                  {
-                    value: day?.firstPickup ? formatClock(day.firstPickup, settings.timeFormat) : '—',
-                    label: 'First pickup',
-                  },
-                  { value: formatDuration(day?.longestSessionMs ?? 0), label: 'Longest session' },
-                ]}
-              />
-            </Card>
-          </Animated.View>
-
-          <Animated.View entering={enter(4)}>
-            <SectionLabel
-              right={
-                <PressableScale onPress={() => router.push('/analytics')} hitSlop={10}>
-                  <Txt variant="callout" tone="accent" weight="600">
-                    See all
-                  </Txt>
+                <PressableScale
+                  haptic="light"
+                  scaleTo={0.97}
+                  onPress={() => router.push('/analytics')}
+                  accessibilityLabel={`${dayTitle(selected)}: ${formatDuration(total)} of screen time. Swipe left or right to change day. Double-tap for analytics.`}
+                >
+                  <DottedDial size={268} progress={total / goalMs} live={isToday}>
+                    <RollingText text={`${shown.h}h`} variant="hero" />
+                    <RollingText text={`${String(shown.m).padStart(2, '0')}m`} variant="hero" tone="secondary" />
+                  </DottedDial>
                 </PressableScale>
-              }
-            >
-              Most used
-            </SectionLabel>
-          </Animated.View>
-          <Animated.View entering={enter(5)}>
-            <Card>
-              {top.length === 0 ? (
-                <Txt variant="subhead" tone="tertiary" align="center" style={styles.empty}>
-                  Nothing here yet
-                </Txt>
-              ) : (
-                top.map((a, i) => (
-                  <View key={a.appId}>
-                    {i > 0 ? <Divider inset={70} /> : null}
-                    <AppUsageRow
-                      app={apps[a.appId]}
-                      ms={a.ms}
-                      share={a.ms / topMs}
-                      index={i}
-                      detail={`${CATEGORIES[apps[a.appId]?.category ?? 'other'].label} · ${a.sessions} ${a.sessions === 1 ? 'session' : 'sessions'}`}
-                      onPress={() => router.push({ pathname: '/app/[id]', params: { id: a.appId, day: selected } })}
+              </SwipeDays>
+              <Txt variant="subhead" tone="secondary" align="center" style={styles.message}>
+                {goalMessage(total, goalMs, isToday)}
+              </Txt>
+            </View>
+
+            <Sheet>
+              <DataNotice />
+
+              {isToday && total > goalMs ? (
+                <View>
+                  <PressableScale
+                    onPress={() => router.push('/menu')}
+                    scaleTo={0.98}
+                    style={[styles.nudge, { backgroundColor: accentSoft }]}
+                    accessibilityRole="button"
+                  >
+                    <Ionicons name="sparkles" size={20} color={accent} />
+                    <View style={{ flex: 1 }}>
+                      <Txt variant="callout" weight="600">
+                        Craving another scroll?
+                      </Txt>
+                      <Txt variant="footnote" tone="secondary">
+                        Let your dopamine menu pick something better.
+                      </Txt>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={accent} />
+                  </PressableScale>
+                </View>
+              ) : null}
+
+              <View>
+                <Card>
+                  <StatColumns
+                    stats={(['productivity', 'social', 'entertainment'] as const).map((c) => ({
+                      value: formatDuration(day?.byCategory[c] ?? 0),
+                      label: CATEGORIES[c].label,
+                      color: CATEGORIES[c].color,
+                    }))}
+                  />
+                  <View style={styles.stackPad}>
+                    <StackedLine
+                      segments={(['productivity', 'social', 'entertainment', 'other'] as const).map((c) => ({
+                        value: day?.byCategory[c] ?? 0,
+                        color: CATEGORIES[c].color,
+                      }))}
                     />
                   </View>
-                ))
-              )}
-            </Card>
-          </Animated.View>
-        </Sheet>
+                </Card>
+              </View>
+
+              <View>
+                <Card>
+                  <StatColumns
+                    stats={[
+                      { value: String(day?.pickups ?? 0), label: 'Pickups' },
+                      {
+                        value: day?.firstPickup ? formatClock(day.firstPickup, settings.timeFormat) : '—',
+                        label: 'First pickup',
+                      },
+                      { value: formatDuration(day?.longestSessionMs ?? 0), label: 'Longest session' },
+                    ]}
+                  />
+                </Card>
+              </View>
+
+              <View>
+                <SectionLabel
+                  right={
+                    <PressableScale onPress={() => router.push('/analytics')} hitSlop={10}>
+                      <Txt variant="callout" tone="accent" weight="600">
+                        See all
+                      </Txt>
+                    </PressableScale>
+                  }
+                >
+                  Most used
+                </SectionLabel>
+              </View>
+              <View>
+                <Card>
+                  {top.length === 0 ? (
+                    <Txt variant="subhead" tone="tertiary" align="center" style={styles.empty}>
+                      Nothing here yet
+                    </Txt>
+                  ) : (
+                    top.map((a, i) => (
+                      <View key={a.appId}>
+                        {i > 0 ? <Divider inset={70} /> : null}
+                        <AppUsageRow
+                          app={apps[a.appId]}
+                          ms={a.ms}
+                          share={a.ms / topMs}
+                          index={i}
+                          detail={`${CATEGORIES[apps[a.appId]?.category ?? 'other'].label} · ${a.sessions} ${a.sessions === 1 ? 'session' : 'sessions'}`}
+                          onPress={() => router.push({ pathname: '/app/[id]', params: { id: a.appId, day: selected } })}
+                        />
+                      </View>
+                    ))
+                  )}
+                </Card>
+              </View>
+            </Sheet>
+          </>
+        )}
       </Screen>
     </>
   );

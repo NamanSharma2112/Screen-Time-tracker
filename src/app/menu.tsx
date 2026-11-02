@@ -2,15 +2,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  FadeOut,
-  LinearTransition,
-  SlideInDown,
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 
 import { PrimaryButton } from '@/components/Buttons';
 import { PressableScale } from '@/components/PressableScale';
@@ -21,14 +12,13 @@ import { TextField } from '@/components/TextField';
 import { Txt } from '@/components/Txt';
 import { haptics } from '@/lib/haptics';
 import { addMenuItem, deleteMenuItem, menuStore, randomMenuItem, type MenuItem } from '@/state/menu';
-import { curves, timings, useEntering } from '@/theme/motion';
+
 import { useTheme } from '@/theme/useTheme';
 
 /** Delays between shuffle ticks: fast at first, slowing like a wheel coming to rest. */
 const TICKS = [45, 50, 55, 60, 70, 80, 95, 115, 140, 175, 220, 280];
 
 export default function MenuScreen() {
-  const enter = useEntering();
   const { accent, accentSoft } = useTheme();
   const items = menuStore.use();
   const [shown, setShown] = useState<MenuItem | undefined>();
@@ -36,8 +26,6 @@ export default function MenuScreen() {
   const [picked, setPicked] = useState(false);
   const [draft, setDraft] = useState('');
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const pop = useSharedValue(1);
-  const slide = useSharedValue(0);
 
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
@@ -53,17 +41,9 @@ export default function MenuScreen() {
         setTimeout(() => {
           current = randomMenuItem(items, current?.id);
           setShown(current);
-          // Each tick nudges the text up, like a slot reel.
-          slide.set(
-            withSequence(
-              withTiming(-8, { duration: 0 }),
-              withTiming(0, { duration: Math.min(d, 160), easing: curves.out }),
-            ),
-          );
           if (i < TICKS.length - 1) haptics.selection();
           else {
             haptics.success();
-            pop.set(withSequence(withTiming(1.06, { duration: 120 }), withTiming(1, timings.change)));
             setSpinning(false);
             setPicked(true);
           }
@@ -71,9 +51,6 @@ export default function MenuScreen() {
       );
     });
   };
-
-  const cardStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.get() }] }));
-  const textStyle = useAnimatedStyle(() => ({ transform: [{ translateY: slide.get() }] }));
 
   return (
     <Screen
@@ -95,14 +72,14 @@ export default function MenuScreen() {
         )
       }
     >
-      <Animated.View entering={enter(0)} style={styles.intro}>
+      <View style={styles.intro}>
         <Txt variant="subhead" tone="secondary" align="center">
           Reaching for your phone out of boredom? Choose something that actually feels good. We’ll pick, so you don’t
           have to decide.
         </Txt>
-      </Animated.View>
+      </View>
 
-      <Animated.View entering={enter(1)} style={styles.pickWrap}>
+      <View style={styles.pickWrap}>
         <PressableScale
           onPress={shuffle}
           scaleTo={0.98}
@@ -110,39 +87,34 @@ export default function MenuScreen() {
           accessibilityRole="button"
           accessibilityLabel="Pick something for me"
         >
-          <Animated.View style={[styles.pickCard, { backgroundColor: accentSoft, borderColor: accent }, cardStyle]}>
+          <View style={[styles.pickCard, { backgroundColor: accentSoft, borderColor: accent }]}>
             <Ionicons name={picked ? 'sparkles' : 'shuffle'} size={26} color={accent} />
             <View style={styles.reel}>
-              <Animated.View style={textStyle}>
+              <View>
                 <Txt variant="title" align="center" numberOfLines={2} accessibilityLiveRegion="polite">
                   {shown?.text ?? 'Tap to pick'}
                 </Txt>
-              </Animated.View>
+              </View>
             </View>
             {shown?.minutes ? (
               <Txt variant="footnote" tone="secondary">
                 about {shown.minutes} min
               </Txt>
             ) : null}
-          </Animated.View>
+          </View>
         </PressableScale>
-      </Animated.View>
+      </View>
 
       <Sheet>
         <SectionLabel>Your menu</SectionLabel>
         <Card>
           {items.map((m, i) => (
-            <Animated.View
-              key={m.id}
-              layout={LinearTransition.duration(200)}
-              exiting={FadeOut.duration(150)}
-              entering={i >= 8 ? SlideInDown.duration(250) : undefined}
-            >
+            <View key={m.id}>
               {i > 0 ? <Divider inset={16} /> : null}
               <SwipeableRow label={m.text} onDelete={() => deleteMenuItem(m.id)}>
                 <MenuRow item={m} />
               </SwipeableRow>
-            </Animated.View>
+            </View>
           ))}
           <Divider inset={16} />
           <View style={styles.addRow}>

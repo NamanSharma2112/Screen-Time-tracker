@@ -1,14 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
-import { useEffect, useState, type ComponentProps } from 'react';
-import { Linking, StyleSheet } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useState, type ComponentProps } from 'react';
+import { Linking, StyleSheet, View } from 'react-native';
 
 import { PrimaryButton } from '@/components/Buttons';
 import { ConfirmSheet } from '@/components/ConfirmSheet';
 import { useToast } from '@/components/IslandToast';
 import { ListRow } from '@/components/ListRow';
+import { LogoLockup } from '@/components/Logo';
 import { OptionSheet, type Option } from '@/components/OptionSheet';
 import { PressableScale } from '@/components/PressableScale';
 import { Screen } from '@/components/Screen';
@@ -21,7 +21,6 @@ import { requestNotifications } from '@/lib/notifications';
 import { SettingsPreview, useSettings, type Settings, type ThemePreference } from '@/state/settings';
 import { useUsage } from '@/state/usage';
 import { ACCENTS } from '@/theme/colors';
-import { timings, useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 import { pinWidget, widgetsAvailable } from '@/widget';
 
@@ -129,7 +128,6 @@ function SettingsContent({
   patch: (p: Partial<Settings>) => void;
   onSave: () => void;
 }) {
-  const enter = useEntering();
   const { eraseAllData } = useSettings();
   const { deviceSupported, permission, requestPermission } = useUsage();
   const [picker, setPicker] = useState<PickerKey | null>(null);
@@ -159,10 +157,10 @@ function SettingsContent({
         bottom={<PrimaryButton label="Save" onPress={onSave} />}
       >
         <Sheet style={{ marginTop: 8 }}>
-          <Animated.View entering={enter(0)}>
+          <View>
             <SectionLabel>Theme</SectionLabel>
-          </Animated.View>
-          <Animated.View entering={enter(1)} style={styles.themeRow}>
+          </View>
+          <View style={styles.themeRow}>
             {themes.map((t) => (
               <ThemeCard
                 key={t.value}
@@ -171,23 +169,23 @@ function SettingsContent({
                 onPress={() => patch({ theme: t.value })}
               />
             ))}
-          </Animated.View>
+          </View>
 
-          <Animated.View entering={enter(2)}>
+          <View>
             <SectionLabel>Main colour</SectionLabel>
-          </Animated.View>
-          <Animated.View entering={enter(3)}>
+          </View>
+          <View>
             <Card style={styles.swatches}>
               {ACCENTS.map((c) => (
                 <Swatch key={c} color={c} selected={draft.accent === c} onPress={() => patch({ accent: c })} />
               ))}
             </Card>
-          </Animated.View>
+          </View>
 
-          <Animated.View entering={enter(4)}>
+          <View>
             <SectionLabel>Goals & focus</SectionLabel>
-          </Animated.View>
-          <Animated.View entering={enter(5)}>
+          </View>
+          <View>
             <Card>
               <ListRow
                 icon="flag-outline"
@@ -218,7 +216,7 @@ function SettingsContent({
                 }
               />
             </Card>
-          </Animated.View>
+          </View>
 
           <SectionLabel>Nudges</SectionLabel>
           <Card>
@@ -271,10 +269,10 @@ function SettingsContent({
             15 minutes, so it may arrive a little late.
           </Txt>
 
-          <Animated.View entering={enter(6)}>
+          <View>
             <SectionLabel>Display & feel</SectionLabel>
-          </Animated.View>
-          <Animated.View entering={enter(7)}>
+          </View>
+          <View>
             <Card>
               <ListRow
                 icon="time-outline"
@@ -303,7 +301,7 @@ function SettingsContent({
                 right={<Switch label="Haptics" value={draft.haptics} onChange={(v) => patch({ haptics: v })} />}
               />
             </Card>
-          </Animated.View>
+          </View>
 
           <SectionLabel>Your data</SectionLabel>
           <Card>
@@ -360,10 +358,9 @@ function SettingsContent({
               }
             />
           </Card>
-          <Txt variant="footnote" tone="tertiary" align="center" style={styles.version}>
-            {LEGAL.appName} {version}
-            {'\n'}Not a medical device.
-          </Txt>
+          <View style={styles.version}>
+            <LogoLockup size={56} subtitle={`Version ${version} · Not a medical device`} />
+          </View>
         </Sheet>
       </Screen>
 
@@ -405,17 +402,6 @@ function ThemeCard({
   onPress: () => void;
 }) {
   const { colors, accent, accentSoft } = useTheme();
-  const s = useSharedValue(selected ? 1 : 0);
-  useEffect(() => {
-    s.set(withTiming(selected ? 1 : 0, timings.change));
-  }, [selected, s]);
-  const frame = useAnimatedStyle(() => ({
-    borderColor: interpolateColor(s.value, [0, 1], ['rgba(0,0,0,0)', accent]),
-  }));
-  const tile = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(s.value, [0, 1], [colors.sheet, accentSoft]),
-  }));
-
   return (
     <PressableScale
       containerStyle={{ flex: 1 }}
@@ -424,27 +410,19 @@ function ThemeCard({
       accessibilityRole="radio"
       accessibilityState={{ checked: selected }}
       accessibilityLabel={`${label} theme`}
+      style={[styles.themeCard, { backgroundColor: colors.card, borderColor: selected ? accent : 'transparent' }]}
     >
-      <Animated.View style={[styles.themeCard, { backgroundColor: colors.card }, frame]}>
-        <Animated.View style={[styles.themeTile, tile]}>
-          <Ionicons name={icon} size={24} color={selected ? accent : colors.text} />
-        </Animated.View>
-        <Txt variant="callout" weight={selected ? '700' : '500'} tone={selected ? 'primary' : 'secondary'}>
-          {label}
-        </Txt>
-      </Animated.View>
+      <View style={[styles.themeTile, { backgroundColor: selected ? accentSoft : colors.sheet }]}>
+        <Ionicons name={icon} size={24} color={selected ? accent : colors.text} />
+      </View>
+      <Txt variant="callout" weight={selected ? '700' : '500'} tone={selected ? 'primary' : 'secondary'}>
+        {label}
+      </Txt>
     </PressableScale>
   );
 }
 
 function Swatch({ color, selected, onPress }: { color: string; selected: boolean; onPress: () => void }) {
-  const s = useSharedValue(selected ? 1 : 0);
-  useEffect(() => {
-    s.set(withTiming(selected ? 1 : 0, timings.change));
-  }, [selected, s]);
-  const ring = useAnimatedStyle(() => ({ opacity: s.value, transform: [{ scale: 0.85 + s.value * 0.15 }] }));
-  const dot = useAnimatedStyle(() => ({ transform: [{ scale: 1 - s.value * 0.22 }] }));
-
   return (
     <PressableScale
       containerStyle={{ flex: 1 }}
@@ -456,8 +434,8 @@ function Swatch({ color, selected, onPress }: { color: string; selected: boolean
       accessibilityState={{ checked: selected }}
       accessibilityLabel={`Colour ${color}`}
     >
-      <Animated.View style={[styles.swatchRing, { borderColor: color }, ring]} />
-      <Animated.View style={[styles.swatch, { backgroundColor: color }, dot]} />
+      {selected ? <View style={[styles.swatchRing, { borderColor: color }]} /> : null}
+      <View style={[styles.swatch, { backgroundColor: color }, selected && { transform: [{ scale: 0.78 }] }]} />
     </PressableScale>
   );
 }
@@ -471,5 +449,5 @@ const styles = StyleSheet.create({
   swatch: { width: 30, height: 30, borderRadius: 15 },
   swatchRing: { position: 'absolute', width: 38, height: 38, borderRadius: 19, borderWidth: 2 },
   footnote: { paddingHorizontal: 4 },
-  version: { marginTop: 16, marginBottom: 8 },
+  version: { marginTop: 24, marginBottom: 12, alignItems: 'center' },
 });

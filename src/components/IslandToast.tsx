@@ -11,19 +11,12 @@ import {
 } from 'react';
 import { AccessibilityInfo, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
-import Animated, {
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withDelay,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { haptics } from '@/lib/haptics';
-import { curves, gestureSpring, timings } from '@/theme/motion';
+import { curves, gestureSpring } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 import { Txt } from './Txt';
@@ -41,30 +34,20 @@ type ToastInput = {
 const ToastContext = createContext<(t: ToastInput) => void>(() => {});
 export const useToast = () => useContext(ToastContext);
 
-const PILL_W = 126;
-const PILL_H = 37;
-const OPEN_H = 64;
-/** Quick, eased bloom — finished in a fixed time, no wobble. */
-const ISLAND_OPEN = { duration: 260, easing: curves.out };
-
 /**
- * A Dynamic-Island–style notification. It grows out of a small pill at the top of the screen
- * into a banner, its content fading in once there's room, then folds back into the pill and fades.
- * Swipe it up to dismiss early. Always black — the island is a piece of hardware, not a theme.
+ * A Dynamic-Island–style notification: a black capsule that slides down from the top, stays a
+ * moment, then fades away. Swipe it up to dismiss early. Animates only transform + opacity.
  */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
   const { width: screenW } = useWindowDimensions();
   const { accent } = useTheme();
-  const reduceMotion = useReducedMotion();
   const [toast, setToast] = useState<ToastInput | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const openW = Math.min(screenW - 24, 380);
-  const w = useSharedValue(PILL_W);
-  const h = useSharedValue(PILL_H);
+  const width = Math.min(screenW - 24, 380);
+  // One value drives the whole entrance/exit (transform + opacity only — cheap on Android).
   const shown = useSharedValue(0);
-  const content = useSharedValue(0);
   const dragY = useSharedValue(0);
 
   const clearTimer = () => {
@@ -72,20 +55,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     timer.current = null;
   };
 
-  const collapse = useCallback(() => {
+  const hide = useCallback(() => {
     clearTimer();
-    content.set(withTiming(0, { duration: 120 }));
-    w.set(withDelay(80, withTiming(PILL_W, timings.change)));
-    h.set(withDelay(80, withTiming(PILL_H, timings.change)));
     shown.set(
-      withDelay(
-        300,
-        withTiming(0, { duration: 200, easing: curves.out }, (finished) => {
-          if (finished) scheduleOnRN(setToast, null);
-        }),
-      ),
+      withTiming(0, { duration: 180, easing: curves.out }, (finished) => {
+        if (finished) scheduleOnRN(setToast, null);
+      }),
     );
-  }, [content, h, shown, w]);
+  }, [shown]);
 
   const show = useCallback(
     (t: ToastInput) => {
@@ -94,25 +71,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       if (t.haptic === 'success') haptics.success();
       else if (t.haptic !== 'none') haptics.light();
       AccessibilityInfo.announceForAccessibility(t.subtitle ? `${t.title}. ${t.subtitle}` : t.title);
-
       dragY.set(0);
-      if (reduceMotion) {
-        w.set(openW);
-        h.set(OPEN_H);
-        shown.set(withTiming(1, { duration: 150 }));
-        content.set(withTiming(1, { duration: 150 }));
-      } else {
-        // Appear as the pill, then bloom outward.
-        w.set(PILL_W);
-        h.set(PILL_H);
-        shown.set(withTiming(1, { duration: 120 }));
-        w.set(withDelay(40, withTiming(openW, ISLAND_OPEN)));
-        h.set(withDelay(40, withTiming(OPEN_H, ISLAND_OPEN)));
-        content.set(withDelay(140, withTiming(1, { duration: 160, easing: curves.out })));
-      }
-      timer.current = setTimeout(collapse, t.duration ?? 2600);
+      shown.set(withTiming(1, { duration: 200, easing: curves.out }));
+      timer.current = setTimeout(hide, t.duration ?? 2600);
     },
-    [collapse, content, dragY, h, openW, reduceMotion, shown, w],
+    [dragY, hide, shown],
   );
 
   useEffect(() => () => clearTimer(), []);
@@ -125,28 +88,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     },
     onDeactivate: (e) => {
       if (e.translationY < -24 || e.velocityY < -500) {
-        dragY.set(withSpring(-120, { ...gestureSpring, velocity: e.velocityY }));
         shown.set(
-          withTiming(0, { duration: 180 }, (finished) => {
+          withTiming(0, { duration: 150 }, (finished) => {
             if (finished) scheduleOnRN(setToast, null);
           }),
         );
       } else {
-        dragY.set(withTiming(0, timings.release));
+        dragY.set(withSpring(0, { ...gestureSpring, velocity: e.velocityY }));
       }
     },
   });
 
-  const islandStyle = useAnimatedStyle(() => ({
-    width: w.get(),
-    height: h.get(),
-    borderRadius: h.get() / 2,
+  const style = useAnimatedStyle(() => ({
     opacity: shown.get(),
-    transform: [{ translateY: dragY.get() }, { scale: 0.92 + shown.get() * 0.08 }],
-  }));
-  const contentStyle = useAnimatedStyle(() => ({
-    opacity: content.get(),
-    transform: [{ scale: 0.96 + content.get() * 0.04 }],
+    transform: [{ translateY: dragY.get() + (1 - shown.get()) * -16 }],
   }));
 
   const toneColor = toast?.tone === 'success' ? '#34C759' : toast?.tone === 'neutral' ? '#FFFFFF' : accent;
@@ -157,8 +112,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {toast ? (
         <View pointerEvents="box-none" style={[styles.host, { top: insets.top + 6 }]}>
           <GestureDetector gesture={pan}>
-            <Animated.View style={[styles.island, islandStyle]} accessibilityLiveRegion="polite">
-              <Animated.View style={[styles.content, contentStyle]}>
+            <Animated.View style={[styles.island, { width }, style]} accessibilityLiveRegion="polite">
+              <View style={styles.content}>
                 {toast.icon ? (
                   <View style={[styles.icon, { backgroundColor: `${toneColor}26` }]}>
                     <Ionicons name={toast.icon} size={18} color={toneColor} />
@@ -174,7 +129,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                     </Txt>
                   ) : null}
                 </View>
-              </Animated.View>
+              </View>
             </Animated.View>
           </GestureDetector>
         </View>
@@ -186,6 +141,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   host: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 1000, elevation: 1000 },
   island: {
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#000',
     overflow: 'hidden',
     justifyContent: 'center',

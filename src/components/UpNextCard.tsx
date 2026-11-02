@@ -1,7 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
-import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { haptics } from '@/lib/haptics';
 import { requestNotifications } from '@/lib/notifications';
@@ -41,7 +40,7 @@ export function UpNextCard() {
           const left = t.at - now;
           const soon = left <= t.warnMinutes * MINUTE;
           return (
-            <Animated.View key={t.id} exiting={FadeOut.duration(150)} layout={LinearTransition.duration(200)}>
+            <View key={t.id}>
               {i > 0 ? <Divider inset={16} /> : null}
               <View style={styles.item}>
                 <View style={{ flex: 1, gap: 6 }}>
@@ -82,7 +81,7 @@ export function UpNextCard() {
                   <Ionicons name="close-circle" size={22} color="#A6A6AE" />
                 </PressableScale>
               </View>
-            </Animated.View>
+            </View>
           );
         })}
         {list.length ? <Divider inset={16} /> : null}

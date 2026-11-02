@@ -1,15 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 
 import { MinutesPill } from '@/components/AddTaskSheet';
 import { PrimaryButton } from '@/components/Buttons';
@@ -22,13 +14,10 @@ import { TextField } from '@/components/TextField';
 import { Txt } from '@/components/Txt';
 import { haptics } from '@/lib/haptics';
 import { addStep, deleteStep, taskProgress, tasksStore, toggleStep, type Step } from '@/state/tasks';
-import { timings, useEntering } from '@/theme/motion';
+
 import { useTheme } from '@/theme/useTheme';
 
-const layout = LinearTransition.duration(200);
-
 export default function TaskDetailScreen() {
-  const enter = useEntering();
   const { id } = useLocalSearchParams<{ id: string }>();
   const task = tasksStore.use().find((t) => t.id === id);
   const [draft, setDraft] = useState('');
@@ -60,7 +49,7 @@ export default function TaskDetailScreen() {
         ) : undefined
       }
     >
-      <Animated.View entering={enter(0)} style={styles.hero}>
+      <View style={styles.hero}>
         <DottedDial size={150} progress={p.total ? p.done / p.total : 0}>
           <Txt variant="title" tabular>
             {p.done}/{p.total}
@@ -76,12 +65,12 @@ export default function TaskDetailScreen() {
               ? 'Every step done. Be proud of that.'
               : 'Add a first tiny step below.'}
         </Txt>
-      </Animated.View>
+      </View>
       <Sheet>
-        <Animated.View entering={enter(1)}>
+        <View>
           <Card>
             {task.steps.map((s, i) => (
-              <Animated.View key={s.id} layout={layout} entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
+              <View key={s.id}>
                 {i > 0 ? <Divider inset={52} /> : null}
                 <SwipeableRow label={s.text} onDelete={() => deleteStep(task.id, s.id)}>
                   <StepRow
@@ -94,7 +83,7 @@ export default function TaskDetailScreen() {
                     onStart={() => start(s)}
                   />
                 </SwipeableRow>
-              </Animated.View>
+              </View>
             ))}
             {task.steps.length ? <Divider inset={52} /> : null}
             <View style={styles.addRow}>
@@ -116,7 +105,7 @@ export default function TaskDetailScreen() {
               />
             </View>
           </Card>
-        </Animated.View>
+        </View>
       </Sheet>
     </Screen>
   );
@@ -124,11 +113,6 @@ export default function TaskDetailScreen() {
 
 function StepRow({ step, onToggle, onStart }: { step: Step; onToggle: () => void; onStart: () => void }) {
   const { colors, accent, accentSoft } = useTheme();
-  const v = useSharedValue(step.done ? 1 : 0);
-  useEffect(() => {
-    v.set(withTiming(step.done ? 1 : 0, timings.change));
-  }, [step.done, v]);
-  const fill = useAnimatedStyle(() => ({ opacity: v.get(), transform: [{ scale: 0.6 + v.get() * 0.4 }] }));
   return (
     <View style={[styles.stepRow, { backgroundColor: colors.card }]}>
       <PressableScale
@@ -141,9 +125,11 @@ function StepRow({ step, onToggle, onStart }: { step: Step; onToggle: () => void
         accessibilityLabel={step.text}
       >
         <View style={[styles.circle, { borderColor: step.done ? accent : colors.textTertiary }]}>
-          <Animated.View style={[styles.circleFill, { backgroundColor: accent }, fill]}>
-            <Ionicons name="checkmark" size={14} color="#fff" />
-          </Animated.View>
+          {step.done ? (
+            <View style={[styles.circleFill, { backgroundColor: accent }]}>
+              <Ionicons name="checkmark" size={14} color="#fff" />
+            </View>
+          ) : null}
         </View>
       </PressableScale>
       <Txt

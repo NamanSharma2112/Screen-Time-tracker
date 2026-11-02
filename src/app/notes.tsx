@@ -1,15 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 
 import { BrainDumpSheet } from '@/components/BrainDumpSheet';
 import { PrimaryButton } from '@/components/Buttons';
@@ -20,13 +12,10 @@ import { SwipeableRow } from '@/components/SwipeableRow';
 import { Txt } from '@/components/Txt';
 import { haptics } from '@/lib/haptics';
 import { clearDoneNotes, deleteNote, notesStore, toggleNote, type Note } from '@/state/notes';
-import { timings, useEntering } from '@/theme/motion';
+
 import { useTheme } from '@/theme/useTheme';
 
-const layout = LinearTransition.duration(200);
-
 export default function NotesScreen() {
-  const enter = useEntering();
   const notes = notesStore.use();
   const [open, setOpen] = useState(false);
   const pending = notes.filter((n) => !n.done);
@@ -41,14 +30,14 @@ export default function NotesScreen() {
         }}
         bottom={<PrimaryButton label="Park a thought" onPress={() => setOpen(true)} />}
       >
-        <Animated.View entering={enter(0)} style={styles.intro}>
+        <View style={styles.intro}>
           <Txt variant="subhead" tone="secondary" align="center">
             Thoughts you parked while focusing.{'\n'}Tick them off, or swipe left to let them go.
           </Txt>
-        </Animated.View>
+        </View>
         <Sheet>
           {notes.length === 0 ? (
-            <Animated.View entering={enter(1)} style={styles.empty}>
+            <View style={styles.empty}>
               <Ionicons name="file-tray-outline" size={36} color="#A6A6AE" />
               <Txt variant="headline" align="center">
                 Nothing parked
@@ -56,15 +45,15 @@ export default function NotesScreen() {
               <Txt variant="subhead" tone="secondary" align="center">
                 When a thought pops up mid-task, drop it here and get straight back to what you were doing.
               </Txt>
-            </Animated.View>
+            </View>
           ) : null}
           {pending.map((n) => (
-            <Animated.View key={n.id} layout={layout} entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
+            <View key={n.id}>
               <NoteRow note={n} />
-            </Animated.View>
+            </View>
           ))}
           {done.length ? (
-            <Animated.View layout={layout}>
+            <View>
               <SectionLabel
                 right={
                   <PressableScale
@@ -82,12 +71,12 @@ export default function NotesScreen() {
               >
                 Done
               </SectionLabel>
-            </Animated.View>
+            </View>
           ) : null}
           {done.map((n) => (
-            <Animated.View key={n.id} layout={layout} entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
+            <View key={n.id}>
               <NoteRow note={n} />
-            </Animated.View>
+            </View>
           ))}
         </Sheet>
       </Screen>
@@ -98,11 +87,6 @@ export default function NotesScreen() {
 
 function NoteRow({ note }: { note: Note }) {
   const { colors, accent } = useTheme();
-  const check = useSharedValue(note.done ? 1 : 0);
-  useEffect(() => {
-    check.set(withTiming(note.done ? 1 : 0, timings.change));
-  }, [note.done, check]);
-  const fill = useAnimatedStyle(() => ({ opacity: check.get(), transform: [{ scale: 0.6 + check.get() * 0.4 }] }));
 
   return (
     <SwipeableRow label={note.text} onDelete={() => deleteNote(note.id)}>
@@ -121,9 +105,11 @@ function NoteRow({ note }: { note: Note }) {
           accessibilityLabel={note.text}
         >
           <View style={[styles.circle, { borderColor: note.done ? accent : colors.textTertiary }]}>
-            <Animated.View style={[styles.circleFill, { backgroundColor: accent }, fill]}>
-              <Ionicons name="checkmark" size={14} color="#fff" />
-            </Animated.View>
+            {note.done ? (
+              <View style={[styles.circleFill, { backgroundColor: accent }]}>
+                <Ionicons name="checkmark" size={14} color="#fff" />
+              </View>
+            ) : null}
           </View>
         </PressableScale>
         <Txt

@@ -1,10 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Platform, StyleSheet, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import { useSettings } from '@/state/settings';
 import { useUsage } from '@/state/usage';
-import { useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 import { PressableScale } from './PressableScale';
@@ -12,7 +10,6 @@ import { Txt } from './Txt';
 
 /** Explains why we're showing sample data, and offers the fix when there is one. */
 export function DataNotice() {
-  const enter = useEntering();
   const { source, deviceSupported, permission, requestPermission, error } = useUsage();
   const { settings } = useSettings();
   const { colors, accent, accentSoft } = useTheme();
@@ -40,7 +37,7 @@ export function DataNotice() {
   if (!title) return null;
 
   return (
-    <Animated.View entering={enter(0)}>
+    <View>
       <PressableScale disabled={!action} onPress={action} style={[styles.card, { backgroundColor: colors.card }]}>
         <View style={[styles.icon, { backgroundColor: accentSoft }]}>
           <Ionicons name={action ? 'lock-open-outline' : 'sparkles-outline'} size={18} color={accent} />
@@ -55,7 +52,7 @@ export function DataNotice() {
         </View>
         {action ? <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} /> : null}
       </PressableScale>
-    </Animated.View>
+    </View>
   );
 }
 

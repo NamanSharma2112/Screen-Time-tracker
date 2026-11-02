@@ -2,7 +2,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useState, type ComponentProps } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import { BottomSheet } from '@/components/BottomSheet';
 import { BrainDumpSheet } from '@/components/BrainDumpSheet';
@@ -17,7 +16,6 @@ import { focusHistory, focusStats } from '@/state/focus';
 import { notesStore } from '@/state/notes';
 import { taskProgress, tasksStore } from '@/state/tasks';
 import { transitionsStore, upcoming } from '@/state/transitions';
-import { useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 type IconName = ComponentProps<typeof Ionicons>['name'];
@@ -28,7 +26,6 @@ const QUICK = [5, 15, 25, 45];
  * and one tap takes you straight into the tool that helps — no hunting through menus.
  */
 export default function ToolsScreen() {
-  const enter = useEntering();
   const { accent, accentSoft } = useTheme();
   const focus = focusStats(focusHistory.use());
   const parked = notesStore.use().filter((n) => !n.done).length;
@@ -47,18 +44,18 @@ export default function ToolsScreen() {
           left: { icon: 'ellipsis-horizontal', label: 'Preferences', onPress: () => router.push('/settings') },
         }}
       >
-        <Animated.View entering={enter(0)} style={styles.intro}>
+        <View style={styles.intro}>
           <Txt variant="largeTitle" align="center">
             What do you need{'\n'}right now?
           </Txt>
           <Txt variant="subhead" tone="secondary" align="center">
             Pick one. We’ll take it from there.
           </Txt>
-        </Animated.View>
+        </View>
 
         <Sheet>
           {/* The most common need gets one-tap starts. */}
-          <Animated.View entering={enter(0)}>
+          <View>
             <View style={[styles.hero, { backgroundColor: accentSoft }]}>
               <View style={styles.heroTop}>
                 <View style={[styles.heroIcon, { backgroundColor: accent }]}>
@@ -98,9 +95,9 @@ export default function ToolsScreen() {
                 </Txt>
               ) : null}
             </View>
-          </Animated.View>
+          </View>
 
-          <Animated.View entering={enter(1)}>
+          <View>
             <Card>
               <Need
                 icon="layers"
@@ -146,7 +143,7 @@ export default function ToolsScreen() {
                 onPress={() => setSheet('checkin')}
               />
             </Card>
-          </Animated.View>
+          </View>
 
           {hasUpcoming ? (
             <>

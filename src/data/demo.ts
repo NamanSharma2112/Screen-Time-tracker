@@ -19,27 +19,28 @@ const app = (
   weight: number,
   median: number,
   weekendBoost = 1,
-): DemoApp => ({ id, name, category, color, weight, median, weekendBoost });
+  glyph?: string,
+): DemoApp => ({ id, name, category, color, weight, median, weekendBoost, glyph });
 
 const DEMO_APPS: DemoApp[] = [
-  app('demo.instagram', 'Instagram', 'social', '#E1306C', 16, 4.5, 1.3),
-  app('demo.whatsapp', 'WhatsApp', 'social', '#25D366', 18, 1.8),
-  app('demo.x', 'X', 'social', '#1F1F1F', 6, 3.5),
-  app('demo.reddit', 'Reddit', 'social', '#FF5700', 5, 6, 1.4),
-  app('demo.youtube', 'YouTube', 'entertainment', '#FF2D2D', 8, 9, 1.8),
-  app('demo.netflix', 'Netflix', 'entertainment', '#B20710', 1.2, 28, 2.5),
-  app('demo.spotify', 'Spotify', 'entertainment', '#1DB954', 4, 1.2),
-  app('demo.slack', 'Slack', 'productivity', '#4A154B', 9, 2.6, 0.35),
-  app('demo.gmail', 'Gmail', 'productivity', '#EA4335', 7, 1.6, 0.5),
-  app('demo.notion', 'Notion', 'productivity', '#2B2B2B', 3, 6, 0.4),
-  app('demo.calendar', 'Calendar', 'productivity', '#2F8CFF', 3, 0.8, 0.6),
-  app('demo.chrome', 'Chrome', 'other', '#4285F4', 8, 3.2),
-  app('demo.maps', 'Maps', 'other', '#34A853', 1.5, 2.5, 1.6),
-  app('demo.camera', 'Camera', 'other', '#6E6E76', 1.5, 0.7, 1.5),
+  app('demo.instagram', 'Instagram', 'social', '#E1306C', 16, 4.5, 1.3, 'logo-instagram'),
+  app('demo.whatsapp', 'WhatsApp', 'social', '#25D366', 18, 1.8, 1, 'logo-whatsapp'),
+  app('demo.x', 'X', 'social', '#1F1F1F', 6, 3.5, 1, 'logo-x'),
+  app('demo.reddit', 'Reddit', 'social', '#FF5700', 5, 6, 1.4, 'logo-reddit'),
+  app('demo.youtube', 'YouTube', 'entertainment', '#FF2D2D', 8, 9, 1.8, 'logo-youtube'),
+  app('demo.netflix', 'Netflix', 'entertainment', '#B20710', 1.2, 28, 2.5, 'film'),
+  app('demo.spotify', 'Spotify', 'entertainment', '#1DB954', 4, 1.2, 1, 'musical-notes'),
+  app('demo.slack', 'Slack', 'productivity', '#4A154B', 9, 2.6, 0.35, 'logo-slack'),
+  app('demo.gmail', 'Gmail', 'productivity', '#EA4335', 7, 1.6, 0.5, 'mail'),
+  app('demo.notion', 'Notion', 'productivity', '#2B2B2B', 3, 6, 0.4, 'document-text'),
+  app('demo.calendar', 'Calendar', 'productivity', '#2F8CFF', 3, 0.8, 0.6, 'calendar'),
+  app('demo.chrome', 'Chrome', 'other', '#4285F4', 8, 3.2, 1, 'logo-chrome'),
+  app('demo.maps', 'Maps', 'other', '#34A853', 1.5, 2.5, 1.6, 'map'),
+  app('demo.camera', 'Camera', 'other', '#6E6E76', 1.5, 0.7, 1.5, 'camera'),
 ];
 
 const APPS_BY_ID: Record<string, AppMeta> = Object.fromEntries(
-  DEMO_APPS.map(({ id, name, category, color }) => [id, { id, name, category, color }]),
+  DEMO_APPS.map(({ id, name, category, color, glyph }) => [id, { id, name, category, color, glyph }]),
 );
 
 /** How likely a pickup is in each hour of the day. */

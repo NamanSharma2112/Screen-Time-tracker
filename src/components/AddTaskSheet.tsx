@@ -1,7 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { haptics } from '@/lib/haptics';
 import { addTask } from '@/state/tasks';
@@ -58,7 +57,7 @@ export function AddTaskSheet({ visible, onClose }: { visible: boolean; onClose: 
           Tiny steps. If a step feels hard to start, make it smaller.
         </Txt>
         {steps.map((s, i) => (
-          <Animated.View key={i} entering={FadeIn.duration(200)} layout={LinearTransition} style={styles.stepRow}>
+          <View key={i} style={styles.stepRow}>
             <Txt variant="callout" tone="tertiary" style={styles.num}>
               {i + 1}
             </Txt>
@@ -78,7 +77,7 @@ export function AddTaskSheet({ visible, onClose }: { visible: boolean; onClose: 
                 )
               }
             />
-          </Animated.View>
+          </View>
         ))}
         {steps.length < MAX_STEPS ? (
           <PressableScale

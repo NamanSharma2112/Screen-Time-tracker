@@ -2,7 +2,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { AddTaskSheet } from '@/components/AddTaskSheet';
 import { ProgressLine } from '@/components/Bars';
@@ -13,11 +12,9 @@ import { Sheet } from '@/components/Surfaces';
 import { SwipeableRow } from '@/components/SwipeableRow';
 import { Txt } from '@/components/Txt';
 import { deleteTask, taskProgress, tasksStore, type Task } from '@/state/tasks';
-import { useEntering } from '@/theme/motion';
 import { useTheme } from '@/theme/useTheme';
 
 export default function TasksScreen() {
-  const enter = useEntering();
   const tasks = tasksStore.use();
   const [open, setOpen] = useState(false);
 
@@ -27,14 +24,14 @@ export default function TasksScreen() {
         header={{ title: 'Tasks', left: { icon: 'arrow-back', label: 'Back', onPress: () => router.back() } }}
         bottom={<PrimaryButton label="Break down a task" onPress={() => setOpen(true)} />}
       >
-        <Animated.View entering={enter(0)} style={styles.intro}>
+        <View style={styles.intro}>
           <Txt variant="subhead" tone="secondary" align="center">
             Big tasks, tiny steps. Each step gets its own short timer — you only ever have to start the next one.
           </Txt>
-        </Animated.View>
+        </View>
         <Sheet>
           {tasks.length === 0 ? (
-            <Animated.View entering={enter(1)} style={styles.empty}>
+            <View style={styles.empty}>
               <Ionicons name="list-outline" size={36} color="#A6A6AE" />
               <Txt variant="headline" align="center">
                 Nothing to break down yet
@@ -42,19 +39,14 @@ export default function TasksScreen() {
               <Txt variant="subhead" tone="secondary" align="center">
                 Got something you keep putting off? Split it into 5-minute steps and start the first one.
               </Txt>
-            </Animated.View>
+            </View>
           ) : null}
           {tasks.map((t, i) => (
-            <Animated.View
-              key={t.id}
-              entering={enter(1 + Math.min(i, 5))}
-              exiting={FadeOut.duration(150)}
-              layout={LinearTransition.duration(200)}
-            >
+            <View key={t.id}>
               <SwipeableRow label={t.title} onDelete={() => deleteTask(t.id)}>
                 <TaskCard task={t} />
               </SwipeableRow>
-            </Animated.View>
+            </View>
           ))}
         </Sheet>
       </Screen>

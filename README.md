@@ -60,6 +60,19 @@ The app has three tabs, so everything is one tap away:
   - **Delete all data**.
   - Privacy Policy, Terms of Use, Health Disclaimer, open‑source licences, and Contact support.
 
+## Performance on Android
+
+- **No continuous or entrance animation on screens.** Content renders immediately; tap feedback is
+  a plain pressed style applied by React Native (no animation driver).
+- **The Today dial is one static SVG layer.** It used to be two layers with a mask redrawn every
+  frame.
+- **Skeletons while data loads.** Heavy screens build their charts after the push transition
+  finishes (`useDeferredRender`).
+- **Launch screen.** After the native splash, an identical in‑app launch screen stays only until
+  settings and today's numbers are ready (2 s at most), then fades out.
+- **What still animates:** only things that need motion to make sense — dragging sheets and
+  swipe rows, the hold‑to‑stop fill, the switch knob, the toast, and the body‑double companion.
+
 ## Motion & feel
 
 The motion follows Apple's HIG and the animations.dev craft guidelines (`src/theme/motion.ts`):

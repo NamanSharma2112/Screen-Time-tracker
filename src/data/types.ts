@@ -9,6 +9,8 @@ export type AppMeta = {
   color: string;
   /** `data:image/png;base64,...` when the platform gives us the real icon. */
   icon?: string;
+  /** Icon-font glyph (Ionicons name) used for sample data, where there is no real icon. */
+  glyph?: string;
 };
 
 /** A single stretch of time an app spent in the foreground. Epoch ms. */

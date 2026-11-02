@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
-import Animated, { interpolateColor, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { Pressable, StyleSheet, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { haptics } from '@/lib/haptics';
 import { timings } from '@/theme/motion';
@@ -9,30 +9,17 @@ import { useTheme } from '@/theme/useTheme';
 const W = 51;
 const H = 31;
 const KNOB = 27;
-const STRETCH = 7;
 
-/**
- * iOS-style switch (Android's is Material). Like UISwitch, the knob stretches toward the
- * opposite side while your finger is down, then springs across when released.
- */
+/** iOS-style switch. The knob slides (transform only); the track colour switches instantly. */
 export function Switch({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
   const { colors, accent } = useTheme();
-  const on = useSharedValue(value ? 1 : 0);
-  const pressed = useSharedValue(0);
+  const x = useSharedValue(value ? 1 : 0);
 
   useEffect(() => {
-    on.set(withTiming(value ? 1 : 0, timings.change));
-  }, [value, on]);
+    x.set(withTiming(value ? 1 : 0, timings.change));
+  }, [value, x]);
 
-  const track = useAnimatedStyle(() => ({
-    backgroundColor: interpolateColor(on.get(), [0, 1], [colors.track, accent]),
-  }));
-  const knob = useAnimatedStyle(() => {
-    const stretch = pressed.get() * STRETCH;
-    const travel = W - KNOB - 4;
-    // Grow toward the centre: from the left edge when off, from the right edge when on.
-    return { width: KNOB + stretch, transform: [{ translateX: on.get() * (travel - stretch) }] };
-  });
+  const knob = useAnimatedStyle(() => ({ transform: [{ translateX: x.get() * (W - KNOB - 4) }] }));
 
   return (
     <Pressable
@@ -40,16 +27,15 @@ export function Switch({ value, onChange, label }: { value: boolean; onChange: (
       accessibilityLabel={label}
       accessibilityState={{ checked: value }}
       hitSlop={8}
-      onPressIn={() => pressed.set(withTiming(1, timings.press))}
-      onPressOut={() => pressed.set(withTiming(0, timings.release))}
+      unstable_pressDelay={0}
       onPress={() => {
         haptics.light();
         onChange(!value);
       }}
     >
-      <Animated.View style={[styles.track, track]}>
+      <View style={[styles.track, { backgroundColor: value ? accent : colors.track }]}>
         <Animated.View style={[styles.knob, knob]} />
-      </Animated.View>
+      </View>
     </Pressable>
   );
 }
@@ -57,6 +43,7 @@ export function Switch({ value, onChange, label }: { value: boolean; onChange: (
 const styles = StyleSheet.create({
   track: { width: W, height: H, borderRadius: H / 2, padding: 2 },
   knob: {
+    width: KNOB,
     height: KNOB,
     borderRadius: KNOB / 2,
     backgroundColor: '#fff',

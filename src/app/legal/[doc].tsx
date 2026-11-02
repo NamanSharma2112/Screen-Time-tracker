@@ -1,16 +1,13 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
-import Animated from 'react-native-reanimated';
 
 import { Screen } from '@/components/Screen';
 import { Card, Sheet } from '@/components/Surfaces';
 import { Txt } from '@/components/Txt';
 import { LEGAL } from '@/legal/config';
 import { LEGAL_DOCS, type LegalDocId } from '@/legal/content';
-import { useEntering } from '@/theme/motion';
 
 export default function LegalScreen() {
-  const enter = useEntering();
   const { doc } = useLocalSearchParams<{ doc: LegalDocId }>();
   const content = LEGAL_DOCS[doc] ?? LEGAL_DOCS.privacy;
 
@@ -18,7 +15,7 @@ export default function LegalScreen() {
     <Screen
       header={{ title: content.title, left: { icon: 'arrow-back', label: 'Back', onPress: () => router.back() } }}
     >
-      <Animated.View entering={enter(0)} style={styles.intro}>
+      <View style={styles.intro}>
         <Txt variant="title" align="center">
           {content.title}
         </Txt>
@@ -28,9 +25,9 @@ export default function LegalScreen() {
         <Txt variant="body" tone="secondary" align="center" style={styles.summary}>
           {content.summary}
         </Txt>
-      </Animated.View>
+      </View>
       <Sheet>
-        <Animated.View entering={enter(1)}>
+        <View>
           <Card style={styles.card}>
             {content.sections.map((s) => (
               <View key={s.heading} style={styles.section}>
@@ -55,7 +52,7 @@ export default function LegalScreen() {
               </View>
             ))}
           </Card>
-        </Animated.View>
+        </View>
       </Sheet>
     </Screen>
   );
