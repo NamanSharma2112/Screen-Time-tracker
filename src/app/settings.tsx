@@ -22,7 +22,7 @@ import { SettingsPreview, useSettings, type Settings, type ThemePreference } fro
 import { useUsage } from '@/state/usage';
 import { ACCENTS } from '@/theme/colors';
 import { useTheme } from '@/theme/useTheme';
-import { pinWidget, TREE_WIDGET_NAME, WIDGET_NAME, widgetsAvailable } from '@/widget';
+import { pinWidget, WIDGET_NAME, widgetsAvailable } from '@/widget';
 
 type PickerKey =
   | 'dailyGoalMinutes'
@@ -253,9 +253,7 @@ function SettingsContent({
             {widgetsAvailable ? (
               <>
                 <Divider inset={48} />
-                <ListRow icon="grid-outline" label="Add dial widget" onPress={() => addWidget(WIDGET_NAME)} />
-                <Divider inset={48} />
-                <ListRow icon="leaf-outline" label="Add tree widget" onPress={() => addWidget(TREE_WIDGET_NAME)} />
+                <ListRow icon="grid-outline" label="Add home-screen widget" onPress={() => addWidget(WIDGET_NAME)} />
               </>
             ) : null}
           </Card>

@@ -2,11 +2,9 @@ import { isRunningInExpoGo } from 'expo';
 import { Platform, TurboModuleRegistry } from 'react-native';
 
 import { TodayWidget } from './TodayWidget';
-import { loadTreeData, loadWidgetData } from './data';
-import { TreeWidget } from './TreeWidget';
+import { loadWidgetData } from './data';
 
 export const WIDGET_NAME = 'TodayDial';
-export const TREE_WIDGET_NAME = 'StreakTree';
 
 type WidgetLib = typeof import('react-native-android-widget');
 
@@ -29,14 +27,7 @@ function lib(): WidgetLib | null {
   }
 }
 
-async function render(ui: WidgetLib, name: string, width: number, height: number) {
-  if (name === TREE_WIDGET_NAME) {
-    const { tree, accent, theme } = await loadTreeData();
-    const view = (scheme: 'light' | 'dark') => (
-      <TreeWidget tree={tree} accent={accent} width={width} height={height} scheme={scheme} ui={ui} />
-    );
-    return theme === 'system' ? { light: view('light'), dark: view('dark') } : view(theme);
-  }
+async function render(ui: WidgetLib, width: number, height: number) {
   const { data, theme } = await loadWidgetData();
   const view = (scheme: 'light' | 'dark') => (
     <TodayWidget data={data} width={width} height={height} scheme={scheme} ui={ui} />
@@ -44,19 +35,17 @@ async function render(ui: WidgetLib, name: string, width: number, height: number
   return theme === 'system' ? { light: view('light'), dark: view('dark') } : view(theme);
 }
 
-/** Redraws every placed widget (dial + tree). Safe anywhere; a no-op where widgets aren't supported. */
+/** Redraws every placed widget. Safe anywhere; a no-op where widgets aren't supported. */
 export async function refreshWidgets() {
   const w = lib();
   if (!w) return;
-  for (const name of [WIDGET_NAME, TREE_WIDGET_NAME]) {
-    try {
-      await w.requestWidgetUpdate({
-        widgetName: name,
-        renderWidget: (info) => render(w, name, info.width, info.height),
-      });
-    } catch {
-      // Widgets are a nice-to-have; never let them break the app.
-    }
+  try {
+    await w.requestWidgetUpdate({
+      widgetName: WIDGET_NAME,
+      renderWidget: (info) => render(w, info.width, info.height),
+    });
+  } catch {
+    // Widgets are a nice-to-have; never let them break the app.
   }
 }
 
@@ -78,7 +67,7 @@ export function registerWidgets() {
   w.registerWidgetTaskHandler(async ({ widgetInfo, widgetAction, renderWidget }) => {
     if (widgetAction === 'WIDGET_DELETED' || widgetAction === 'WIDGET_CLICK') return;
     try {
-      renderWidget(await render(w, widgetInfo.widgetName, widgetInfo.width, widgetInfo.height));
+      renderWidget(await render(w, widgetInfo.width, widgetInfo.height));
     } catch {
       // Leave the previous rendering in place.
     }

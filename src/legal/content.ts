@@ -46,7 +46,6 @@ export const PRIVACY: LegalDoc = {
       heading: 'How that information is used and stored',
       body: [
         'Detailed usage information (which apps, when) is read from Android when you open the app and is kept only in the app’s memory while it is running. It is not copied to storage, not uploaded, and not shared.',
-        'To grow your streak tree beyond the roughly one week of history Android keeps, the app saves one small summary per finished day on your device: the date, your total screen time that day and your goal at the time. No app names or times of day are saved.',
         'If you turn on the hyperfocus check-in, Android periodically (about every 15 minutes) lets the app read your most recent usage in the background, on the device, to see whether one app has held your attention for longer than the time you chose. Nothing is stored except a marker that prevents repeat nudges for the same stretch.',
         'You can withdraw access at any time in Android Settings › Apps › Special app access › Usage access. The app then shows sample data instead.',
       ],
@@ -60,7 +59,6 @@ export const PRIVACY: LegalDoc = {
         'Notes you type into Brain Dump.',
         'Tasks and steps you create, your daily check-ins (energy, mood, focus), your dopamine-menu ideas and the “up next” reminders you set.',
         'Which version of these terms you accepted.',
-        'A per-day screen-time total and goal, used for your streak tree (see above).',
       ],
     },
     {
@@ -80,7 +78,7 @@ export const PRIVACY: LegalDoc = {
       heading: 'Things only you can see — and choose to share',
       body: [],
       bullets: [
-        'If you add the home-screen widgets, they show today’s screen time and your streak tree on your home screen, where anyone who can see your phone can see them.',
+        'If you add the home-screen widget, it shows today’s screen time on your home screen, where anyone who can see your phone can see them.',
         'If you share a weekly recap, the image is created on your device and sent only to the app or person you pick. What happens next is governed by their policies.',
       ],
     },

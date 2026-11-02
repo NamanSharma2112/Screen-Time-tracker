@@ -14,7 +14,6 @@ import { StatColumns } from '@/components/StatColumns';
 import { Badge, Card, Divider, SectionLabel, Sheet } from '@/components/Surfaces';
 import { SwipeDays } from '@/components/SwipeDays';
 import { TodaySkeleton } from '@/components/Skeleton';
-import { TreeCard } from '@/components/TreeCard';
 import { Txt } from '@/components/Txt';
 import { WeekStrip } from '@/components/WeekStrip';
 import { CATEGORIES } from '@/data/categories';
@@ -119,8 +118,6 @@ export default function TodayScreen() {
 
             <Sheet>
               <DataNotice />
-
-              <TreeCard />
 
               {isToday && total > goalMs ? (
                 <View>

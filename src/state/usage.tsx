@@ -15,9 +15,8 @@ import { buildDay } from '@/data/aggregate';
 import { demoSource } from '@/data/demo';
 import { deviceSource, deviceTrackingSupported, hasUsagePermission, openUsageAccessSettings } from '@/data/device';
 import type { AppMeta, DayUsage, UsageSource } from '@/data/types';
-import { addDays, MINUTE, parseKey, todayKey } from '@/lib/time';
+import { addDays, parseKey, todayKey } from '@/lib/time';
 
-import { recordOutcomes } from './growth';
 import { useSettings } from './settings';
 
 /** Today's numbers are refetched when older than this. */
@@ -60,11 +59,9 @@ export function UsageProvider({ children }: { children: ReactNode }) {
   const store = rawStore.kind === source.kind ? rawStore : emptyStore(source.kind);
   const storeRef = useRef(store);
   const sourceRef = useRef(source);
-  const goalRef = useRef(settings.dailyGoalMinutes * MINUTE);
   useLayoutEffect(() => {
     storeRef.current = store;
     sourceRef.current = source;
-    goalRef.current = settings.dailyGoalMinutes * MINUTE;
   });
   const inflight = useRef(new Set<string>());
   const [pending, setPending] = useState(0);
@@ -89,15 +86,6 @@ export function UsageProvider({ children }: { children: ReactNode }) {
         const end = addDays(parseKey(missing[missing.length - 1]), 1);
         const raw = await source.fetchRange(start, end);
         if (sourceRef.current !== source) return;
-        // Real usage only: remember finished days' totals so the streak tree outlives Android's
-        // ~1-week usage history. (Sample data never touches this.)
-        if (source.kind === 'device') {
-          recordOutcomes(
-            missing.map((k) => ({ key: k, totalMs: buildDay(k, raw.sessions, raw.unlocks, raw.apps).totalMs })),
-            goalRef.current,
-            today,
-          );
-        }
         setStore((prevRaw) => {
           const prev = prevRaw.kind === source.kind ? prevRaw : emptyStore(source.kind);
           const apps = { ...prev.apps, ...raw.apps };

@@ -12,6 +12,9 @@ type Store<T> = {
 
 const registry = new Set<Store<unknown>>();
 
+// Data from features that were removed (the streak tree's daily totals); cleared so nothing lingers.
+AsyncStorage.removeItem('growth.v1').catch(() => {});
+
 /** A tiny global store persisted to AsyncStorage, shared by every component that reads it. */
 export function createPersistedStore<T>(key: string, initial: T): Store<T> {
   let state = initial;
