@@ -77,7 +77,10 @@ Regenerate the icon and graphics with `node scripts/generate-assets.mjs`.
 - **Package visibility.** The app declares `<queries>` for launcher apps only. It doesn't use
   `QUERY_ALL_PACKAGES`, which would need a separate declaration.
 - **Notifications.** These are local only (focus endings, up-next heads-ups, hyperfocus
-  check-ins). No Firebase or push services are used.
+  check-ins). The app never signs up for push messages. Note that the Android notifications
+  library it uses (`expo-notifications`) bundles Google's Firebase Cloud Messaging code, so the
+  built bundle contains `FirebaseMessagingService` and the `c2dm` permission. With no `INTERNET`
+  permission that code cannot reach the network, so nothing is sent. See `PLAY-CONSOLE.md`.
 - **No internet.** The `production` and `preview` profiles build with `NO_INTERNET=1`, which
   removes the `INTERNET` permission. Use `--profile production-online` if you ever add a network
   feature, and set `releaseWithoutInternet: false` in `src/legal/config.ts`.

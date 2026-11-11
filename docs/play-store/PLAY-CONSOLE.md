@@ -174,9 +174,37 @@ with **Internal testing** to try it on your own phone first.
 
 ## Permissions in the release bundle
 
-Checked by reading the merged manifest inside the built `.aab`:
+Checked by reading the merged manifest of the signed release bundle (`versionCode 1`, `versionName 1.0.0`,
+`minSdk 24`, `targetSdk 36`, 4 CPU architectures).
 
-PERMISSIONS_PLACEHOLDER
+**What the app asks for**
+
+| Permission | Why |
+| --- | --- |
+| `PACKAGE_USAGE_STATS` | Reads screen time. The user grants it in Android Settings after the in-app explanation. |
+| `POST_NOTIFICATIONS` | Local reminders only (focus ended, up next, hyperfocus check-in). |
+| `VIBRATE` | Haptic feedback (can be turned off). |
+| `RECEIVE_BOOT_COMPLETED` | Restores the scheduled background check after a restart. |
+| `WAKE_LOCK`, `FOREGROUND_SERVICE` | Added by the background-work library (WorkManager). No foreground service *type* is declared, so Play's foreground-service declaration is not needed. |
+| `MODIFY_AUDIO_SETTINGS` | Declared by the audio library for the body-double ambient sound. |
+| `ACCESS_NETWORK_STATE` | Android's job scheduler needs it to run the background check. It cannot send data. |
+
+**Added by libraries, harmless without internet.** These are all "normal" permissions that need no
+declaration: about 20 launcher-badge permissions (`READ_APP_BADGE`, `com.sec.android.provider.badge.*`,
+`com.huawei...`, etc., from the notifications library), `com.google.android.c2dm.permission.RECEIVE`
+(Firebase Cloud Messaging code inside the notifications library) and
+`...BIND_GET_INSTALL_REFERRER_SERVICE` (install-referrer client).
+
+**Deliberately absent (verified):** `INTERNET`, `RECORD_AUDIO`, `SYSTEM_ALERT_WINDOW`,
+`READ/WRITE_EXTERNAL_STORAGE`, `READ_MEDIA_*`, `AD_ID`, `QUERY_ALL_PACKAGES`, location, contacts,
+camera, accessibility.
+
+> **Firebase note.** The notifications library bundles Google's Firebase Cloud Messaging code, so
+> Play's scanner may show Firebase among the app's SDKs. The app never registers for push messages
+> and has no `INTERNET` permission, so that code cannot send anything. That's why Data safety stays
+> **No data collected**. If a reviewer asks, say exactly this. If you ever want the Firebase code
+> gone entirely, switch to a notifications setup that doesn't include it (a change that needs
+> testing on a real device).
 
 ---
 
