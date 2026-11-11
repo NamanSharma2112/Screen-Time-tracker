@@ -1,12 +1,12 @@
 # Privacy Policy
 
-_Screen Time Tracker · Effective 1 November 2026_
+_Screen Time Tracker · Effective 11 November 2026_
 
 Screen Time Tracker works entirely on your phone. We have no servers, no accounts, no analytics and no ads, and we never see your data.
 
 ## Who we are
 
-Screen Time Tracker (“the app”) is published by [Your name or company] (“we”, “us”). This policy explains what information the app uses, why, and the choices you have. Effective 1 November 2026.
+Screen Time Tracker (“the app”) is published by Naman Sharma (“we”, “us”). This policy explains what information the app uses, why, and the choices you have. Effective 11 November 2026.
 
 ## The short version
 
@@ -82,4 +82,4 @@ If we change this policy we will update the effective date, and for material cha
 
 ## Contact
 
-Questions or requests: [support@your-domain.com]
+Questions or requests: namansharmans03@gmail.com

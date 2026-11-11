@@ -8,14 +8,14 @@
  */
 export const LEGAL = {
   appName: 'Screen Time Tracker',
-  developerName: '[Your name or company]',
-  contactEmail: '[support@your-domain.com]',
+  developerName: 'Naman Sharma',
+  contactEmail: 'namansharmans03@gmail.com',
   /** Governing law for the Terms, e.g. "India" or "the State of California, USA". */
-  jurisdiction: '[Your country / state]',
+  jurisdiction: 'India',
   /** Public URLs Google Play links to (see docs/legal — host them with GitHub Pages or similar). */
-  privacyPolicyUrl: '[https://your-domain.com/privacy]',
-  termsUrl: '[https://your-domain.com/terms]',
-  effectiveDate: '1 November 2026',
+  privacyPolicyUrl: 'https://namansharma.com/screen-time-tracker/privacy.html',
+  termsUrl: 'https://namansharma.com/screen-time-tracker/terms.html',
+  effectiveDate: '11 November 2026',
   version: 1,
   /** Minimum age for the Terms. Play target audience should be set to 13+ to match. */
   minimumAge: 13,

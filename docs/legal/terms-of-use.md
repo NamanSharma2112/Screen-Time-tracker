@@ -1,12 +1,12 @@
 # Terms of Use
 
-_Screen Time Tracker · Effective 1 November 2026_
+_Screen Time Tracker · Effective 11 November 2026_
 
 The rules for using Screen Time Tracker. Plain-English, but binding — please read them.
 
 ## Agreement
 
-These Terms of Use (“Terms”) are an agreement between you and [Your name or company] about your use of Screen Time Tracker. By tapping “Agree & Continue” or using the app, you accept these Terms and our Privacy Policy. If you do not agree, do not use the app. Effective 1 November 2026.
+These Terms of Use (“Terms”) are an agreement between you and Naman Sharma about your use of Screen Time Tracker. By tapping “Agree & Continue” or using the app, you accept these Terms and our Privacy Policy. If you do not agree, do not use the app. Effective 11 November 2026.
 
 ## Eligibility
 
@@ -58,8 +58,8 @@ We may update these Terms. For material changes the app will ask you to accept t
 
 ## Governing law
 
-These Terms are governed by the laws of [Your country / state], without regard to conflict-of-law rules, except where the law of your country of residence gives you mandatory protections.
+These Terms are governed by the laws of India, without regard to conflict-of-law rules, except where the law of your country of residence gives you mandatory protections.
 
 ## Contact
 
-[Your name or company] — [support@your-domain.com]
+Naman Sharma — namansharmans03@gmail.com

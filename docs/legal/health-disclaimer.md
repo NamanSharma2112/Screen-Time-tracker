@@ -1,6 +1,6 @@
 # Health Disclaimer
 
-_Screen Time Tracker · Effective 1 November 2026_
+_Screen Time Tracker · Effective 11 November 2026_
 
 Helpful tools, not treatment.
 
